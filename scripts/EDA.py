@@ -18,14 +18,17 @@ def perform_eda(combined_df, reviews_df):
     print("Summary Statistics for Numeric Columns:")
     combined_df.describe().show()
 
-    # Specific statistics
+    # Specific statistics with null handling
     print("Specific Statistics for Selected Columns:")
-    combined_df.select("cosmetic_price", "review_price", "product_rating", "product_rating_count").describe().show()
+    numeric_cols = ["cosmetic_price", "review_price", "product_rating", "product_rating_count"]
+    for col_name in numeric_cols:
+        combined_df = combined_df.withColumn(col_name, col(col_name).cast("double")).na.fill({col_name: 0})
+    combined_df.select(*numeric_cols).describe().show()
 
     # Distribution of Prices
     print("Distribution of Prices:")
-    cosmetic_price_data = combined_df.select("cosmetic_price").rdd.flatMap(lambda x: x).collect()
-    review_price_data = combined_df.select("review_price").rdd.flatMap(lambda x: x).collect()
+    cosmetic_price_data = combined_df.select("cosmetic_price").rdd.flatMap(lambda x: x).filter(lambda x: x is not None).collect()
+    review_price_data = combined_df.select("review_price").rdd.flatMap(lambda x: x).filter(lambda x: x is not None).collect()
 
     plt.figure(figsize=(12, 6))
     plt.subplot(1, 2, 1)
@@ -126,20 +129,6 @@ def perform_eda(combined_df, reviews_df):
     plt.xlabel("Review Count")
     plt.ylabel("Product Title")
     plt.show()
-
-    # Average Product Rating by Top 10 Brands
-    print("Average Product Rating by Top 10 Brands:")
-    brand_ratings = combined_df.groupBy("brand").agg(
-        col("product_rating").alias("avg_rating"),
-        col("product_rating_count").alias("rating_count")
-    )
-    top_brands = brand_ratings.orderBy(col("rating_count").desc()).limit(10).toPandas()
-
-    plt.figure(figsize=(12, 6))
-    sns.barplot(x="brand", y="avg_rating", data=top_brands)
-    plt.title("Average Product Rating by Top 10 Brands")
-    plt.xlabel("Brand")
-    plt.ylabel("Average Rating")
-    plt.show()
+    
 
     print("EDA Completed.")

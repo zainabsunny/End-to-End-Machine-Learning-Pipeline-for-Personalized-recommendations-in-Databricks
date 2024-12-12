@@ -53,13 +53,37 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - **SpaCy**: Text preprocessing, stemming, and lemmatization.
   - **Transformers (GPT)**: Tokenization and embedding generation for unstructured data.
 - **Delta Lake**: Storage for transactional reliability and scalability.
-- **MLflow (Stretch Goal)**: To track model metrics, manage versioning, and facilitate reproducibility.
+- **MLflow**: To track model metrics, manage versioning, and facilitate reproducibility.
 - **Unity Catalog (Stretch Goal)**: For Data Governance.
 - **AWS S3**: Cloud storage for raw datasets.
 - **Visualization Tools**:
   - Matplotlib
   - Seaborn
   - Power BI Dashboard or Tableau: For data visualization and reporting.
+
+---
+
+##**MLflow Best Practices**
+
+1. **Access Control and Versioning**
+  - Use Git for version control: Store pipelines and code in Git to manage development stages (development, staging, release).
+  - Leverage Databricks Git folders to integrate Git with Databricks workspaces, ensuring synchronization between notebooks and source code.
+
+2. **Data Management**
+  - Store all raw data and feature tables in a Delta Lake architecture, enabling reliable transactional storage.
+  - Apply access controls to Delta tables to manage permissions for data reading and modification.
+
+3. **Model Tracking and Development**
+  - Use MLflow to:
+      - Track model parameters, metrics, and metadata.
+      - Save code snapshots for reproducibility
+      - Monitor the development lifecycle, from experimentation to deployment.
+
+4. **Model Governance and Deployment**
+  - Utilize Models in Unity Catalog for:
+    - Centralized model versioning and governance.
+    - Managing deployment statuses.
+    - Ensuring seamless model lifecycle transitions.
 
 ---
 
@@ -87,12 +111,26 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - Analyzes correlations between variables.
 - Examines sentiment trends and engagement levels.
 
-### **5. Delta Table Management**
+### **5. Baseline Recommendation Models**
+- Collaborative Filtering:
+  - Builds recommendations based on cosine similarity between products.
+  - Uses a sparse matrix representation to model user-product interactions efficiently.
+  - Generates product similarity matrices and top recommendations for each product.
+  - Logs sparsity metrics, product similarity scores, and recommendation results for evaluation using MLflow.
+  - Optimized for memory efficiency by filtering low-interaction users/products and processing similarities incrementally.
+- Apriori Algorithm:
+  - Identifies frequent itemsets in customer sessions using Apriori.
+  - Extracts association rules to understand relationships between products based on lift and confidence metrics.
+  - Applies sparse matrix transformations to optimize memory usage during frequent itemset generation.
+  - Logs association rules and frequent itemsets as artifacts in MLflow for analysis and evaluation.
+  - Leverages frequent itemsets and rules to identify cross-sell and up-sell opportunities effectively.
+
+### **6. Delta Table Management**
 - Converts cleaned and transformed datasets into Delta tables.
 - Ensures schema consistency and reliable storage.
 
-### **6. Coming Soon (Future Scope)**
-- Build and evaluate recommendation models.
+### **7. Coming Soon (Future Scope)**
+- Build advanced recommendation models and evaluate performance.
 - Implement personalized email campaigns based on engagement levels.
 - Introduce reranking using LLMs for improved recommendation quality.
 

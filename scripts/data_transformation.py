@@ -61,7 +61,3 @@ def transform_mapping_data(mapping_df):
     )
     
     return mapping_df 
-
-
-    
-    # Scale `cosmeticProductId` and `revi

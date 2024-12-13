@@ -139,7 +139,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ## **Baseline Model Output**
 
-####1. **Cosine Similarity Recommendations**
+#### **1. Cosine Similarity Recommendations**
 - Each product_id has associated recommendations (Rec 1, Rec 2, etc.) along with their similarity scores (Score 1, Score 2, etc.), which quantify the closeness of related productsL
   - product_id: The ID of the product for which recommendations are generated.
   - Rec 1, Rec 2, ...: The IDs of recommended products, ranked by similarity.
@@ -149,7 +149,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Top recommended products and their similarity scores.
 - Example: Product 3762 is similar to 4185 (score: 0.6255) and 5764730 (score: 0.1805).
 
-####2. **Frequent Itemsets**
+#### **2. Frequent Itemsets**
 - Identifies frequently purchased products and product combinations via the following content:
   - items: The set of items (products) that are frequently purchased together.
   - freq: The frequency of occurrence of the itemset.
@@ -158,7 +158,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Frequently co-purchased combinations like [5723511, 5723490].
 - Example: Items like [5807747] have high frequencies, indicating they are commonly purchased
 
-####3. **Association Rules**
+#### **3. Association Rules**
 - Derives actionable insights on product relationships via the following content: 
   - antecedent: The product(s) that serve as the "if" part of an association rule (e.g., products frequently purchased together).
   - consequent: The product(s) that are predicted based on the antecedent.

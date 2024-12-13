@@ -116,14 +116,11 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Builds recommendations based on cosine similarity that predicts product recommendations based on user interactions.
   - Uses a sparse matrix representation to model user-product interactions efficiently.
   - Generates product similarity matrices and top recommendations for each product
-    - Each product_id has associated recommendations (Rec 1, Rec 2, etc.) along with their similarity scores (Score 1, Score 2, etc.), which quantify the closeness of related products.
-    - Serves as a foundational model for personalized recommendations.
+  - Serves as a foundational model for personalized recommendations.
   - Logs key metrics such as sparsity, product similarity scores, and recommendation results using MLflow.
 - FP-Growth:
   - Identify patterns in user sessions to uncover frequently co-purchased items and their association rules.
   - Provides insights into product relationships by analyzing user interaction data: 
-    - Example: Items like [5807747] have high frequencies, indicating they are commonly purchased
-    - Exmaple: If [5896178] is purchased, there's a 27% confidence that [5896174] will also be purchased, with a lift of 73.6 indicating a strong association.
     - Identifies cross-sell and up-sell opportunities.
     - Provides input for reranking models or enhancing collaborative filtering outputs.
   - Logs results as artifacts in MLflow, enabling detailed examination and reproducibility of findings.
@@ -137,6 +134,40 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - Build advanced recommendation models and evaluate performance.
 - Implement personalized email campaigns based on engagement levels.
 - Introduce reranking using LLMs for improved recommendation quality.
+
+---
+
+## **Baseline Model Output**
+
+####1. **Cosine Similarity Recommendations**
+- Each product_id has associated recommendations (Rec 1, Rec 2, etc.) along with their similarity scores (Score 1, Score 2, etc.), which quantify the closeness of related productsL
+  - product_id: The ID of the product for which recommendations are generated.
+  - Rec 1, Rec 2, ...: The IDs of recommended products, ranked by similarity.
+  - Score 1, Score 2, ...: The similarity scores corresponding to each recommended product.
+- Outputs include:
+  - Product similarity matrices.
+  - Top recommended products and their similarity scores.
+- Example: Product 3762 is similar to 4185 (score: 0.6255) and 5764730 (score: 0.1805).
+
+####2. **Frequent Itemsets**
+- Identifies frequently purchased products and product combinations via the following content:
+  - items: The set of items (products) that are frequently purchased together.
+  - freq: The frequency of occurrence of the itemset.
+- Outputs include:
+  - Popular products like [5807747] (137 purchases).
+  - Frequently co-purchased combinations like [5723511, 5723490].
+- Example: Items like [5807747] have high frequencies, indicating they are commonly purchased
+
+####3. **Association Rules**
+- Derives actionable insights on product relationships via the following content: 
+  - antecedent: The product(s) that serve as the "if" part of an association rule (e.g., products frequently purchased together).
+  - consequent: The product(s) that are predicted based on the antecedent.
+  - confidence: The likelihood that the consequent is purchased given the antecedent.
+  - lift: Measures how much the confidence of a rule is higher than what would be expected by chance.
+  - support: The proportion of transactions that include both the antecedent and consequent.
+- Outputs include:
+  - Rules like "if [5896178], then [5896174]" with confidence of 27% and lift of 73.6.
+- Example:  if [5896178] is purchased, there's a 27% confidence that [5896174] will also be purchased, with a lift of 73.6 indicating a strong association.
 
 ---
 

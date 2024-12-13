@@ -101,14 +101,14 @@ def run_fp_growth(df, min_support=0.001, min_confidence=0.1):
             # Get frequent itemsets
             frequent_itemsets = model.freqItemsets.toPandas()
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            frequent_itemsets_filename = f"frequent_itemsets_{timestamp}.csv"
+            frequent_itemsets_filename = f"frequent_itemsets.csv"
             frequent_itemsets.to_csv(frequent_itemsets_filename, index=False)
             mlflow.log_artifact(frequent_itemsets_filename)
             mlflow.log_metric("frequent_itemsets_count", len(frequent_itemsets))
 
             # Get association rules
             association_rules = model.associationRules.toPandas()
-            association_rules_filename = f"association_rules_{timestamp}.csv"
+            association_rules_filename = f"association_rules.csv"
             association_rules.to_csv(association_rules_filename, index=False)
             mlflow.log_artifact(association_rules_filename)
             mlflow.log_metric("association_rules_count", len(association_rules))

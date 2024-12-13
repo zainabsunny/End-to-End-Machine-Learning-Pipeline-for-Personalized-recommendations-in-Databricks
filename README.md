@@ -54,7 +54,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - **Transformers (GPT)**: Tokenization and embedding generation for unstructured data.
 - **Delta Lake**: Storage for transactional reliability and scalability.
 - **MLflow**: To track model metrics, manage versioning, and facilitate reproducibility.
-- **Unity Catalog (Stretch Goal)**: For Data Governance.
+- **Unity Catalog**: For Data governance and management.
 - **AWS S3**: Cloud storage for raw datasets.
 - **Visualization Tools**:
   - Matplotlib
@@ -125,9 +125,10 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Logs association rules and frequent itemsets as artifacts in MLflow for analysis and evaluation.
   - Leverages frequent itemsets and rules to identify cross-sell and up-sell opportunities effectively.
 
-### **6. Delta Table Management**
-- Converts cleaned and transformed datasets into Delta tables.
+### **6. Delta Table Management: Unity Catalog**
+- Stores cleaned and transformed datasets in Unity Catalog-managed Delta tables for centralized governance and access control.
 - Ensures schema consistency and reliable storage.
+- Leverages Unity Catalog to provide audit trails, fine-grained access controls, and lineage tracking for all datasets.
 
 ### **7. Coming Soon (Future Scope)**
 - Build advanced recommendation models and evaluate performance.

@@ -113,17 +113,20 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ### **5. Baseline Recommendation Models**
 - Collaborative Filtering:
-  - Builds recommendations based on cosine similarity between products.
+  - Builds recommendations based on cosine similarity that predicts product recommendations based on user interactions.
   - Uses a sparse matrix representation to model user-product interactions efficiently.
-  - Generates product similarity matrices and top recommendations for each product.
-  - Logs sparsity metrics, product similarity scores, and recommendation results for evaluation using MLflow.
-  - Optimized for memory efficiency by filtering low-interaction users/products and processing similarities incrementally.
-- Apriori Algorithm:
-  - Identifies frequent itemsets in customer sessions using Apriori.
-  - Extracts association rules to understand relationships between products based on lift and confidence metrics.
-  - Applies sparse matrix transformations to optimize memory usage during frequent itemset generation.
-  - Logs association rules and frequent itemsets as artifacts in MLflow for analysis and evaluation.
-  - Leverages frequent itemsets and rules to identify cross-sell and up-sell opportunities effectively.
+  - Generates product similarity matrices and top recommendations for each product
+    - Each product_id has associated recommendations (Rec 1, Rec 2, etc.) along with their similarity scores (Score 1, Score 2, etc.), which quantify the closeness of related products.
+    - Serves as a foundational model for personalized recommendations.
+  - Logs key metrics such as sparsity, product similarity scores, and recommendation results using MLflow.
+- FP-Growth:
+  - Identify patterns in user sessions to uncover frequently co-purchased items and their association rules.
+  - Provides insights into product relationships by analyzing user interaction data: 
+    - Example: Items like [5807747] have high frequencies, indicating they are commonly purchased
+    - Exmaple: If [5896178] is purchased, there's a 27% confidence that [5896174] will also be purchased, with a lift of 73.6 indicating a strong association.
+    - Identifies cross-sell and up-sell opportunities.
+    - Provides input for reranking models or enhancing collaborative filtering outputs.
+  - Logs results as artifacts in MLflow, enabling detailed examination and reproducibility of findings.
 
 ### **6. Delta Table Management: Unity Catalog**
 - Stores cleaned and transformed datasets in Unity Catalog-managed Delta tables for centralized governance and access control.

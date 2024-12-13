@@ -63,7 +63,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ---
 
-##**MLflow Best Practices**
+## **MLflow Best Practices**
 
 1. **Access Control and Versioning**
   - Use Git for version control: Store pipelines and code in Git to manage development stages (development, staging, release).

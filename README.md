@@ -171,6 +171,12 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ---
 
+## Architecture Diagram
+
+![Architecture Diagram](images/architecture_diagram.png)
+
+---
+
 ## **Sponsor**
 
 This project is proudly sponsored by **Royal Cyber**, a trusted global leader in IT consultancy and enterprise solutions. The sponsorship enables the exploration of advanced machine learning solutions for real-world e-commerce challenges.

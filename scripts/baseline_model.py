@@ -1,21 +1,26 @@
-import pandas as pd
+import datetime
+import mlflow
 import numpy as np
-import time
+import pandas as pd
 import scipy.sparse as sparse
+import time
+import warnings
+
 from scipy.sparse import csr_matrix
 from sklearn.metrics.pairwise import cosine_similarity
 from mlxtend.frequent_patterns import apriori, association_rules
-import mlflow
 from pyspark.ml.fpm import FPGrowth
-from pyspark.sql.functions import collect_set
-import datetime
-import warnings
+from pyspark.ml.feature import StringIndexer
+from pyspark.ml import Pipeline
+from pyspark.ml.recommendation import ALS
+from pyspark.sql import functions as F
+
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 # Cosine Similarity Recommendations
-def recommendations(df, filename, rows='user_session', cols='product_id', quantity='product_quantity', top=11):
+def generate_cosine_sim_recs(df, filename, rows='user_session', cols='product_id', quantity='product_quantity', top=11):
     """
     Generate recommendations using cosine similarity.
     Tracks metrics and artifacts with MLflow.
@@ -92,7 +97,7 @@ def run_fp_growth(df, min_support=0.001, min_confidence=0.1):
     with mlflow.start_run(run_name="FP-Growth"):
         try:
             # Prepare data: Group items by user_session
-            fp_data = df.groupBy("user_session").agg(collect_set("cosmeticProductId").alias("items"))
+            fp_data = df.groupBy("user_session").agg(F.collect_set("cosmeticProductId").alias("items"))
 
             # Train FP-Growth model
             fp_growth = FPGrowth(itemsCol="items", minSupport=min_support, minConfidence=min_confidence)
@@ -115,6 +120,72 @@ def run_fp_growth(df, min_support=0.001, min_confidence=0.1):
 
             print("FP-Growth completed successfully.")
             return frequent_itemsets, association_rules
+
+        except Exception as e:
+            mlflow.log_param("error", str(e))
+            raise e
+    
+
+def run_als_recommender(
+    spark_df, 
+    user_col='user_session', 
+    item_col='cosmetic_id', 
+    rating_col='product_quantity',
+    rank=10, 
+    maxIter=10, 
+    regParam=0.1,
+    mlflow_run_name="ALS-Recommender"
+):
+    """
+    Trains an ALS recommender on a PySpark DataFrame and logs outputs via MLflow.
+    Returns the trained model and top-N user/item recommendations.
+    """
+    with mlflow.start_run(run_name=mlflow_run_name):
+        try:
+            start_time = time.time()
+
+            # Convert string user_session to numeric index
+            user_indexer = StringIndexer(inputCol=user_col, outputCol='user_session_index', handleInvalid='skip')
+            pipeline = Pipeline(stages=[user_indexer])
+            indexed_df = pipeline.fit(spark_df).transform(spark_df)
+
+            # Build the ALS model
+            als = ALS(
+                userCol='user_session_index',
+                itemCol=item_col,
+                ratingCol=rating_col,
+                rank=rank,
+                maxIter=maxIter,
+                regParam=regParam,
+                implicitPrefs=True,       # often used for implicit feedback like clicks/purchases
+                coldStartStrategy="drop"  # handles NaN predictions
+            )
+            model = als.fit(indexed_df)
+
+            # Log ALS parameters
+            mlflow.log_param("rank", rank)
+            mlflow.log_param("maxIter", maxIter)
+            mlflow.log_param("regParam", regParam)
+
+            # Generate top-10 recommendations for all users and items
+            user_recs = model.recommendForAllUsers(10)
+            item_recs = model.recommendForAllItems(10)
+
+            training_time = round(time.time() - start_time, 2)
+            mlflow.log_metric("training_time", training_time)
+
+            # Save user_recs & item_recs
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            user_recs_filename = f"dbfs:/tmp/user_recs_{timestamp}.parquet"
+            user_recs.write.mode("overwrite").parquet(user_recs_filename)
+            mlflow.log_artifact(user_recs_filename)
+
+            item_recs_filename = f"dbfs:/tmp/item_recs_{timestamp}.parquet"
+            item_recs.write.mode("overwrite").parquet(item_recs_filename)
+            mlflow.log_artifact(item_recs_filename)
+
+            print("ALS model training completed successfully.")
+            return model, user_recs, item_recs
 
         except Exception as e:
             mlflow.log_param("error", str(e))

@@ -59,11 +59,11 @@ def add_predictor_features(cosmetic_df):
     # Product Popularity
     product_popularity = (
         cosmetic_df.filter(col("event_type") == "purchase")
-        .groupBy("cosmeticProductId")
+        .groupBy("cosmetic_id")
         .count()
         .withColumnRenamed("count", "popularity")
     )
-    cosmetic_df = cosmetic_df.join(product_popularity, on="cosmeticProductId", how="left")
+    cosmetic_df = cosmetic_df.join(product_popularity, on="cosmetic_id", how="left")
 
     # Session Diversity
     session_diversity = (

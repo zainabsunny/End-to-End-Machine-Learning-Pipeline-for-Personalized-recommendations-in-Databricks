@@ -6,6 +6,9 @@ import torch
 
 def transform_cosmetic_data(cosmetic_df):
     """Transform structured interaction data."""
+    # Cache the DataFrame to ensure user_session doesn't get lost
+    cosmetic_df = cosmetic_df.cache()
+    
     # Scale `cosmetic_price`
     assembler = VectorAssembler(inputCols=["cosmetic_price"], outputCol="price_vec")
     cosmetic_df = assembler.transform(cosmetic_df)
@@ -42,13 +45,13 @@ def transform_mapping_data(mapping_df):
     from pyspark.sql.types import IntegerType
 
     # Cast columns to IntegerType
-    mapping_df = mapping_df.withColumn("cosmeticProductId", mapping_df["cosmeticProductId"].cast(IntegerType()))
-    mapping_df = mapping_df.withColumn("reviewProductId", mapping_df["reviewProductId"].cast(IntegerType()))
+    mapping_df = mapping_df.withColumn("cosmetic_product_id", mapping_df["cosmetic_product_id"].cast(IntegerType()))
+    mapping_df = mapping_df.withColumn("review_product_id", mapping_df["review_product_id"].cast(IntegerType()))
     
     # Calculate mean and standard deviation for filtering outliers
     stats = mapping_df.select(
-        mean("reviewProductId").alias("mean_reviews"),
-        stddev("reviewProductId").alias("stddev_reviews")
+        mean("review_product_id").alias("mean_reviews"),
+        stddev("review_product_id").alias("stddev_reviews")
     ).collect()[0]
     
     mean_reviews = stats["mean_reviews"]
@@ -56,8 +59,8 @@ def transform_mapping_data(mapping_df):
     
     # Filter out outliers
     mapping_df = mapping_df.filter(
-        (col("reviewProductId") > mean_reviews - 3 * stddev_reviews) &
-        (col("reviewProductId") < mean_reviews + 3 * stddev_reviews)
+        (col("review_product_id") > mean_reviews - 3 * stddev_reviews) &
+        (col("review_product_id") < mean_reviews + 3 * stddev_reviews)
     )
     
     return mapping_df 

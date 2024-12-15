@@ -28,7 +28,7 @@ clean_text_udf = udf(clean_text, StringType())
 
 def clean_cosmetic_df(cosmetic_df: DataFrame) -> DataFrame:
     # Standardize column names
-    cosmetic_df = cosmetic_df.withColumnRenamed("product_id", "cosmeticProductId") \
+    cosmetic_df = cosmetic_df.withColumnRenamed("product_id", "cosmetic_product_id") \
                              .withColumnRenamed("price", "cosmetic_price") 
     
     # Filter out rows with invalid prices
@@ -42,8 +42,8 @@ def clean_cosmetic_df(cosmetic_df: DataFrame) -> DataFrame:
 
 def clean_mapping_df(mapping_df: DataFrame) -> DataFrame:
     # Standardize column names
-    mapping_df = mapping_df.withColumnRenamed("product_id_events", "cosmeticProductId") \
-                           .withColumnRenamed("product_id_reviews", "reviewProductId")
+    mapping_df = mapping_df.withColumnRenamed("product_id_events", "cosmetic_product_id") \
+                           .withColumnRenamed("product_id_reviews", "review_product_id")
     
     # Drop rows with missing values
     mapping_df = mapping_df.na.drop()
@@ -51,7 +51,7 @@ def clean_mapping_df(mapping_df: DataFrame) -> DataFrame:
 
 def clean_reviews_df(reviews_df: DataFrame) -> DataFrame:
     # Standardize column names
-    reviews_df = reviews_df.withColumnRenamed("product_id", "reviewProductId") \
+    reviews_df = reviews_df.withColumnRenamed("product_id", "review_product_id") \
                            .withColumnRenamed("price", "review_price")
     
     # Drop unnecessary columns and handle missing values

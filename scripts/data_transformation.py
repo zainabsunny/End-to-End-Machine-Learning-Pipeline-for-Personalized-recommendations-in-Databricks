@@ -45,13 +45,13 @@ def transform_mapping_data(mapping_df):
     from pyspark.sql.types import IntegerType
 
     # Cast columns to IntegerType
-    mapping_df = mapping_df.withColumn("cosmetic_id", mapping_df["cosmetic_id"].cast(IntegerType()))
-    mapping_df = mapping_df.withColumn("review_id", mapping_df["review_id"].cast(IntegerType()))
+    mapping_df = mapping_df.withColumn("cosmetic_product_id", mapping_df["cosmetic_product_id"].cast(IntegerType()))
+    mapping_df = mapping_df.withColumn("review_product_id", mapping_df["review_product_id"].cast(IntegerType()))
     
     # Calculate mean and standard deviation for filtering outliers
     stats = mapping_df.select(
-        mean("review_id").alias("mean_reviews"),
-        stddev("review_id").alias("stddev_reviews")
+        mean("review_product_id").alias("mean_reviews"),
+        stddev("review_product_id").alias("stddev_reviews")
     ).collect()[0]
     
     mean_reviews = stats["mean_reviews"]
@@ -59,8 +59,8 @@ def transform_mapping_data(mapping_df):
     
     # Filter out outliers
     mapping_df = mapping_df.filter(
-        (col("review_id") > mean_reviews - 3 * stddev_reviews) &
-        (col("review_id") < mean_reviews + 3 * stddev_reviews)
+        (col("review_product_id") > mean_reviews - 3 * stddev_reviews) &
+        (col("review_product_id") < mean_reviews + 3 * stddev_reviews)
     )
     
     return mapping_df 

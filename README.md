@@ -124,7 +124,12 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
     - Identifies cross-sell and up-sell opportunities.
     - Provides input for reranking models or enhancing collaborative filtering outputs.
   - Logs results as artifacts in MLflow, enabling detailed examination and reproducibility of findings.
-
+- ALS (Alternating Least Squares) Recommender:
+  - Decomposes the user-item interaction matrix into latent user and item factors using the ALS algorithm.
+  - Handles implicit feedback (e.g., clicks, views, purchases) and prevents NaN predictions with a cold-start strategy.
+  - Users (e.g., user sessions) and Items (e.g., product IDs) are represented as a sparse matrix where interactions are weighted by product quantity or implicit engagement.
+  - Produces top-N recommendations for users and items.
+  
 ### **6. Delta Table Management: Unity Catalog**
 - Stores cleaned and transformed datasets in Unity Catalog-managed Delta tables for centralized governance and access control.
 - Ensures schema consistency and reliable storage.
@@ -169,6 +174,35 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Rules like "if [5896178], then [5896174]" with confidence of 27% and lift of 73.6.
 - Example:  if [5896178] is purchased, there's a 27% confidence that [5896174] will also be purchased, with a lift of 73.6 indicating a strong association.
 
+#### **4. User Recommendation (ALS)**
+- Each user_session_index is associated with a list of recommended products (cosmetic_id) ranked by predicted interaction score (rating), indicating the likelihood of user engagement.
+- Output:
+  - user_session_index: The index representing a user or session.
+  - cosmetic_id: The IDs of the recommended products for the user, ranked by predicted interaction score.
+  - rating: The predicted score for the user-product pair, indicating the strength of the recommendation.
+- Outputs include:
+  - Top-N product recommendations for each user.
+  - Scores indicating the likelihood of interaction between the user and each recommended product.
+- Example:
+  - For user 1, the top recommended products are:
+    - cosmetic_id 5792800 (score: 0.0941)
+    - cosmetic_id 5304 (score: 0.0804)
+    - This indicates that user 1 is most likely to interact with product 5792800.
+
+#### **5. Item Recommendation (ALS)**
+- Each cosmetic_id is associated with a list of users (user_session_index) ranked by predicted interaction score (rating), indicating which users are most likely to engage with the product.
+- Output :
+  - cosmetic_id: The ID of the product for which recommendations are generated.
+  - user_session_index: The IDs of the users most likely to engage with the product, ranked by predicted interaction score.
+  - rating: The predicted score for the user-product pair, indicating the likelihood of user interaction.
+- Outputs include:
+  - Top-N users most likely to engage with each product.
+  - Scores indicating the likelihood of interaction between each user and the product.
+- Example:
+  - For cosmetic_id 3774, the top users likely to engage are:
+    - user_session_index 9 (score: 9.1667e-07)
+    - user_session_index 25 (score: 8.8622e-07)
+    - This indicates that user 9 is most likely to interact with product 3774.
 ---
 
 ## Architecture Diagram

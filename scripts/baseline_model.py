@@ -8,6 +8,7 @@ import warnings
 
 from scipy.sparse import csr_matrix
 from sklearn.metrics.pairwise import cosine_similarity
+from tempfile import NamedTemporaryFile
 from mlxtend.frequent_patterns import apriori, association_rules
 from pyspark.ml.fpm import FPGrowth
 from pyspark.ml.feature import StringIndexer
@@ -167,22 +168,23 @@ def run_als_recommender(
             mlflow.log_param("maxIter", maxIter)
             mlflow.log_param("regParam", regParam)
 
-            # Generate top-10 recommendations for all users and items
-            user_recs = model.recommendForAllUsers(10)
-            item_recs = model.recommendForAllItems(10)
+            user_recs = model.recommendForAllUsers(10).coalesce(1)
+            item_recs = model.recommendForAllItems(10).coalesce(1)
 
             training_time = round(time.time() - start_time, 2)
             mlflow.log_metric("training_time", training_time)
 
-            # Save user_recs & item_recs
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            user_recs_filename = f"dbfs:/tmp/user_recs_{timestamp}.parquet"
-            user_recs.write.mode("overwrite").parquet(user_recs_filename)
-            mlflow.log_artifact(user_recs_filename)
+            # Write user_recs to a single local file
+            with NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_user_file:
+                tmp_user_path = tmp_user_file.name
+            user_recs.write.mode("overwrite").parquet(f"file:{tmp_user_path}")
+            mlflow.log_artifact(tmp_user_path)  
 
-            item_recs_filename = f"dbfs:/tmp/item_recs_{timestamp}.parquet"
-            item_recs.write.mode("overwrite").parquet(item_recs_filename)
-            mlflow.log_artifact(item_recs_filename)
+            # Same for item_recs
+            with NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_item_file:
+                tmp_item_path = tmp_item_file.name
+            item_recs.write.mode("overwrite").parquet(f"file:{tmp_item_path}")
+            mlflow.log_artifact(tmp_item_path)
 
             print("ALS model training completed successfully.")
             return model, user_recs, item_recs

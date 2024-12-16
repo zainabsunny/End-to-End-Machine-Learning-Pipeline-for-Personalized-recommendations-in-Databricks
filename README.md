@@ -125,10 +125,10 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
     - Provides input for reranking models or enhancing collaborative filtering outputs.
   - Logs results as artifacts in MLflow, enabling detailed examination and reproducibility of findings.
 - ALS (Alternating Least Squares) Recommender:
-  - Decomposes the user-item interaction matrix into latent user and item factors using the ALS algorithm.
+  - Decomposes the user-item interaction matrix into latent user and item factors to predict interactions.
   - Handles implicit feedback (e.g., clicks, views, purchases) and prevents NaN predictions with a cold-start strategy.
   - Users (e.g., user sessions) and Items (e.g., product IDs) are represented as a sparse matrix where interactions are weighted by product quantity or implicit engagement.
-  - Produces top-N recommendations for users and items.
+  - Produces personalized top-N recommendations for users and identifies top-N users for items.
   
 ### **6. Delta Table Management: Unity Catalog**
 - Stores cleaned and transformed datasets in Unity Catalog-managed Delta tables for centralized governance and access control.
@@ -176,7 +176,6 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 #### **4. User Recommendation (ALS)**
 - Each user_session_index is associated with a list of recommended products (cosmetic_id) ranked by predicted interaction score (rating), indicating the likelihood of user engagement.
-- Output:
   - user_session_index: The index representing a user or session.
   - cosmetic_id: The IDs of the recommended products for the user, ranked by predicted interaction score.
   - rating: The predicted score for the user-product pair, indicating the strength of the recommendation.
@@ -191,7 +190,6 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 #### **5. Item Recommendation (ALS)**
 - Each cosmetic_id is associated with a list of users (user_session_index) ranked by predicted interaction score (rating), indicating which users are most likely to engage with the product.
-- Output :
   - cosmetic_id: The ID of the product for which recommendations are generated.
   - user_session_index: The IDs of the users most likely to engage with the product, ranked by predicted interaction score.
   - rating: The predicted score for the user-product pair, indicating the likelihood of user interaction.

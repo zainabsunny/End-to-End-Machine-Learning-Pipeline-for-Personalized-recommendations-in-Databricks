@@ -6,7 +6,6 @@ import torch
 from pyspark.sql.functions import udf, lit
 import numpy as np
 
-
 def transform_cosmetic_data(cosmetic_df):
     """Transform structured interaction data."""
     # Scale `cosmetic_price`
@@ -45,7 +44,6 @@ def transform_reviews_data(reviews_df):
             embeddings = outputs.last_hidden_state.mean(dim=1).detach().numpy().tolist()
             return embeddings
         except Exception as e:
-            # Log or handle exceptions for specific text processing errors
             print(f"Error generating embeddings for text: {text}. Error: {e}")
             return []
 
@@ -57,10 +55,10 @@ def transform_reviews_data(reviews_df):
                            .withColumn("stemmed_text_embedding", embeddings_udf(reviews_df["stemmed_text"]))
     
     # Add missing columns to match the Delta table schema if necessary
-    if "lemmatized_title" not in reviews_df.columns:
-        reviews_df = reviews_df.withColumn("lemmatized_title", lit(None).cast(StringType()))
-    if "stemmed_title" not in reviews_df.columns:
-        reviews_df = reviews_df.withColumn("stemmed_title", lit(None).cast(StringType()))
+    expected_columns = ["lemmatized_title", "stemmed_title", "lemmatized_text", "stemmed_text"]
+    for col in expected_columns:
+        if col not in reviews_df.columns:
+            reviews_df = reviews_df.withColumn(col, lit(None).cast(StringType()))
     
     return reviews_df
 

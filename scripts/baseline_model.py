@@ -98,7 +98,7 @@ def run_fp_growth(df, min_support=0.001, min_confidence=0.1):
     with mlflow.start_run(run_name="FP-Growth"):
         try:
             # Prepare data: Group items by user_session
-            fp_data = df.groupBy("user_session").agg(F.collect_set("cosmeticProductId").alias("items"))
+            fp_data = df.groupBy("user_session").agg(F.collect_set("cosmetic_product_id").alias("items"))
 
             # Train FP-Growth model
             fp_growth = FPGrowth(itemsCol="items", minSupport=min_support, minConfidence=min_confidence)
@@ -126,40 +126,39 @@ def run_fp_growth(df, min_support=0.001, min_confidence=0.1):
             mlflow.log_param("error", str(e))
             raise e
     
-
 def run_als_recommender(
     spark_df, 
     user_col='user_session', 
-    item_col='cosmetic_id', 
+    item_col='cosmetic_product_id', 
     rating_col='product_quantity',
     rank=10, 
     maxIter=10, 
-    regParam=0.1,
-    mlflow_run_name="ALS-Recommender"
+    regParam=0.1
 ):
     """
     Trains an ALS recommender on a PySpark DataFrame and logs outputs via MLflow.
     Returns the trained model and top-N user/item recommendations.
     """
-    with mlflow.start_run(run_name=mlflow_run_name):
+    with mlflow.start_run(run_name="ALS-Recommender"):
         try:
+            # Start timer
             start_time = time.time()
 
-            # Convert string user_session to numeric index
-            user_indexer = StringIndexer(inputCol=user_col, outputCol='user_session_index', handleInvalid='skip')
+            # Prepare data: Convert string user_session to numeric index
+            user_indexer = StringIndexer(inputCol=user_col, outputCol="user_session_index", handleInvalid="skip")
             pipeline = Pipeline(stages=[user_indexer])
             indexed_df = pipeline.fit(spark_df).transform(spark_df)
 
-            # Build the ALS model
+            # Train ALS model
             als = ALS(
-                userCol='user_session_index',
+                userCol="user_session_index",
                 itemCol=item_col,
                 ratingCol=rating_col,
                 rank=rank,
                 maxIter=maxIter,
                 regParam=regParam,
-                implicitPrefs=True,       # often used for implicit feedback like clicks/purchases
-                coldStartStrategy="drop"  # handles NaN predictions
+                implicitPrefs=True,
+                coldStartStrategy="drop"
             )
             model = als.fit(indexed_df)
 
@@ -168,23 +167,26 @@ def run_als_recommender(
             mlflow.log_param("maxIter", maxIter)
             mlflow.log_param("regParam", regParam)
 
-            user_recs = model.recommendForAllUsers(10).coalesce(1)
-            item_recs = model.recommendForAllItems(10).coalesce(1)
+            # Generate recommendations
+            user_recs = model.recommendForAllUsers(10).toPandas()
+            item_recs = model.recommendForAllItems(10).toPandas()
 
+            # Save and log user recommendations as Parquet
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            user_recs_filename = f"user_recommendations.parquet"
+            user_recs.to_parquet(user_recs_filename, index=False)
+            mlflow.log_artifact(user_recs_filename)
+            mlflow.log_metric("user_recommendations_count", len(user_recs))
+
+            # Save and log item recommendations as Parquet
+            item_recs_filename = f"item_recommendations.parquet"
+            item_recs.to_parquet(item_recs_filename, index=False)
+            mlflow.log_artifact(item_recs_filename)
+            mlflow.log_metric("item_recommendations_count", len(item_recs))
+
+            # Log training time
             training_time = round(time.time() - start_time, 2)
             mlflow.log_metric("training_time", training_time)
-
-            # Write user_recs to a single local file
-            with NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_user_file:
-                tmp_user_path = tmp_user_file.name
-            user_recs.write.mode("overwrite").parquet(f"file:{tmp_user_path}")
-            mlflow.log_artifact(tmp_user_path)  
-
-            # Same for item_recs
-            with NamedTemporaryFile(suffix=".parquet", delete=False) as tmp_item_file:
-                tmp_item_path = tmp_item_file.name
-            item_recs.write.mode("overwrite").parquet(f"file:{tmp_item_path}")
-            mlflow.log_artifact(tmp_item_path)
 
             print("ALS model training completed successfully.")
             return model, user_recs, item_recs

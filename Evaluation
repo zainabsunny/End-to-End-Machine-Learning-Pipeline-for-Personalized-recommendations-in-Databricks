@@ -1,0 +1,121 @@
+import pandas as pd
+from sklearn.metrics import precision_score, recall_score, mean_squared_error
+import numpy as np
+
+# Helper function : calculate Precision@k and Recall@k
+def calculate_precision_recall_at_k(recs, ground_truth, k=10):
+    """
+    Calculate Precision@k and Recall@k for recommendations.
+    
+    :param recs: DataFrame containing recommendations (e.g., ALS or Cosine Similarity)
+    :param ground_truth: DataFrame containing ground truth purchases
+    :param k: Number of recommendations to evaluate
+    """
+    precision_list = []
+    recall_list = []
+    
+    for user in ground_truth["user_session"].unique():
+        true_items = ground_truth[ground_truth["user_session"] == user]["cosmetic_product_id"].tolist()
+        recommended_items = recs[recs["user_session"] == user]["cosmetic_product_id"].tolist()[:k]
+        
+        if not true_items:  # Skip users without purchases in ground truth
+            continue
+        
+        true_positive = len(set(recommended_items) & set(true_items))
+        precision = true_positive / len(recommended_items) if recommended_items else 0
+        recall = true_positive / len(true_items) if true_items else 0
+        
+        precision_list.append(precision)
+        recall_list.append(recall)
+    
+    precision_at_k = np.mean(precision_list)
+    recall_at_k = np.mean(recall_list)
+    
+    return precision_at_k, recall_at_k
+
+# Evaluate Cosine Similarity Recommendations
+precision_cosine, recall_cosine = calculate_precision_recall_at_k(prod_recs, purchase_df_pandas, k=10)
+print(f"Cosine Similarity Precision@10: {precision_cosine}, Recall@10: {recall_cosine}")
+
+
+
+
+#Evaluate Baseline Model
+# Evaluate ALS Recommendations
+user_recs_pandas = user_recs.toPandas()
+precision_als, recall_als = calculate_precision_recall_at_k(user_recs_pandas, purchase_df_pandas, k=10)
+
+if "rating" in purchase_df.columns:
+    predictions_df = user_recs.toPandas()  # ALS predictions
+    ground_truth_ratings = purchase_df.select("user_session", "cosmetic_product_id", "rating").toPandas()
+    merged = pd.merge(predictions_df, ground_truth_ratings, on=["user_session", "cosmetic_product_id"])
+    rmse_als = np.sqrt(mean_squared_error(merged["rating_y"], merged["rating_x"]))
+    print(f"ALS RMSE: {rmse_als}")
+
+print(f"ALS Precision@10: {precision_als}, Recall@10: {recall_als}")
+
+
+
+##Log Metrics in MLflow
+import mlflow
+import mlflow.spark
+
+# Log Cosine Similarity Metrics
+mlflow.set_experiment("Recommendation Baseline Models")
+
+with mlflow.start_run(run_name="Cosine Similarity"):
+    mlflow.log_param("model_type", "Cosine Similarity")
+    mlflow.log_metric("precision_at_10", precision_cosine)
+    mlflow.log_metric("recall_at_10", recall_cosine)
+    print("Cosine Similarity metrics logged to MLflow.")
+
+# Log ALS Metrics
+with mlflow.start_run(run_name="ALS Recommender"):
+    mlflow.log_param("model_type", "ALS")
+    mlflow.log_metric("precision_at_10", precision_als)
+    mlflow.log_metric("recall_at_10", recall_als)
+    if "rmse_als" in locals():
+        mlflow.log_metric("rmse", rmse_als)
+    print("ALS Recommender metrics logged to MLflow.")
+
+
+
+
+##Visualization: Reccomendation Coverage
+# Calculate coverage
+user_coverage = prod_recs["user_session"].nunique() / purchase_df_pandas["user_session"].nunique()
+item_coverage = prod_recs["cosmetic_product_id"].nunique() / purchase_df_pandas["cosmetic_product_id"].nunique()
+
+# Plot coverage
+coverage_data = {"User Coverage": user_coverage, "Item Coverage": item_coverage}
+plt.figure(figsize=(8, 5))
+plt.bar(coverage_data.keys(), coverage_data.values(), color=["blue", "green"])
+plt.ylim(0, 1)
+plt.title("Recommendation Coverage")
+plt.ylabel("Coverage Percentage")
+plt.show()
+
+
+
+##Visualization: Precision and Recall @k 
+import matplotlib.pyplot as plt
+
+# Precision and Recall at different K values
+k_values = [1, 5, 10, 20]
+precision_scores = []
+recall_scores = []
+
+for k in k_values:
+    precision, recall = calculate_precision_recall_at_k(prod_recs, purchase_df_pandas, k=k)
+    precision_scores.append(precision)
+    recall_scores.append(recall)
+
+plt.figure(figsize=(10, 6))
+plt.plot(k_values, precision_scores, marker="o", label="Precision@K")
+plt.plot(k_values, recall_scores, marker="o", label="Recall@K")
+plt.xlabel("K (Top-K Recommendations)")
+plt.ylabel("Score")
+plt.title("Precision@K and Recall@K")
+plt.legend()
+plt.grid()
+plt.show()

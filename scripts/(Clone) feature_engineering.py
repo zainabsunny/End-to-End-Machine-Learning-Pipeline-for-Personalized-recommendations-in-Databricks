@@ -4,9 +4,6 @@ from pyspark.ml.feature import StringIndexer
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-# -----------------------------
-# 1) Unstructured Data: Text Embeddings (no spaCy)
-# -----------------------------
 
 def get_stella_embeddings(text):
     """

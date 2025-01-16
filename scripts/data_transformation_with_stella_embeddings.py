@@ -68,15 +68,8 @@ def transform_reviews_data(reviews_df, use_gpu=False):
     embeddings_udf = udf(get_text_embeddings, ArrayType(FloatType()))
 
     # Generate embeddings for text columns
-    reviews_df = reviews_df.withColumn("lemmatized_text_embedding", embeddings_udf(reviews_df["lemmatized_text"])) \
-                           .withColumn("stemmed_text_embedding", embeddings_udf(reviews_df["stemmed_text"]))
-    
-    # Add missing columns to match the Delta table schema if necessary
-    expected_columns = ["lemmatized_title", "stemmed_title", "lemmatized_text", "stemmed_text"]
-    for c in expected_columns:
-        if c not in reviews_df.columns:
-            reviews_df = reviews_df.withColumn(c, lit(None).cast(StringType()))
-    
+    reviews_df = reviews_df.withColumn("text_embedding", embeddings_udf(reviews_df["text"])) 
+
     return reviews_df
 
 def transform_mapping_data(mapping_df):

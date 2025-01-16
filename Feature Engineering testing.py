@@ -1,8 +1,17 @@
+# Databricks notebook source
 from pyspark.sql.functions import udf, col, datediff, current_date, min, max, countDistinct
 from pyspark.sql.types import StringType, ArrayType, FloatType
 from pyspark.ml.feature import StringIndexer
 import torch
 from transformers import AutoTokenizer, AutoModel
+
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Create Stella embeddings
+
+# COMMAND ----------
 
 
 def get_stella_embeddings(text):
@@ -30,12 +39,28 @@ def get_stella_embeddings(text):
         print(f"Error generating embeddings for text: {text}. Error: {e}")
         return []
 
-# We'll define our model/tokenizer at a higher scope so we only load them once
-tokenizer = AutoTokenizer.from_pretrained("dunzhang/stella_en_400M_v5")
+
+# COMMAND ----------
+
+# Load model directly
+%pip install xformers
+from transformers import AutoModel
 model = AutoModel.from_pretrained("dunzhang/stella_en_400M_v5")
+
+
+
+
+# COMMAND ----------
+
+tokenizer = AutoTokenizer.from_pretrained("dunzhang/stella_en_400M_v5")
+
+
+# COMMAND ----------
+
 
 # Create a UDF using the above embedding function
 stella_embedding_udf = udf(get_stella_embeddings, ArrayType(FloatType()))
+
 
 def process_reviews_df(reviews_df):
     """
@@ -96,3 +121,4 @@ def add_predictor_features(cosmetic_df):
     cosmetic_df = cosmetic_df.join(session_diversity, on="user_session", how="left")
 
     return cosmetic_df
+

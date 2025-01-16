@@ -6,7 +6,7 @@ import torch
 from pyspark.sql.functions import udf, lit
 import numpy as np
 
-def transform_cosmetic_data(cosmetic_df):
+def transform_cosmetic_data_old(cosmetic_df):
     """Transform structured interaction data."""
     # Scale `cosmetic_price`
     assembler = VectorAssembler(inputCols=["cosmetic_price"], outputCol="price_vec")
@@ -18,7 +18,7 @@ def transform_cosmetic_data(cosmetic_df):
     return cosmetic_df
 
 
-def transform_reviews_data(reviews_df):
+def transform_reviews_data_old(reviews_df):
     """Transform unstructured sentiment data using GPT embeddings."""
     # Cast numerical columns to appropriate types
     reviews_df = reviews_df.withColumn("mrp", reviews_df["mrp"].cast(DoubleType())) \
@@ -34,7 +34,7 @@ def transform_reviews_data(reviews_df):
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token  # Set pad_token to eos_token if not defined
 
-    def get_text_embeddings(text):
+    def get_text_embeddings_old(text):
         """Generate embeddings for a given text using GPT-like model."""
         try:
             if text is None:
@@ -48,7 +48,7 @@ def transform_reviews_data(reviews_df):
             return []
 
     # Define UDF for embeddings
-    embeddings_udf = udf(get_text_embeddings, ArrayType(FloatType()))
+    embeddings_udf = udf(get_text_embeddings_old, ArrayType(FloatType()))
 
     # Generate embeddings for text columns
     reviews_df = reviews_df.withColumn("lemmatized_text_embedding", embeddings_udf(reviews_df["lemmatized_text"])) \
@@ -83,7 +83,7 @@ def transform_reviews_data(reviews_df):
     
 #     return reviews_df
 
-def transform_mapping_data(mapping_df):
+def transform_mapping_data_old(mapping_df):
     """Transform product mapping data."""
     from pyspark.sql.functions import mean, stddev, col
     from pyspark.sql.types import IntegerType

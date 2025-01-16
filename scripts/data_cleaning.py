@@ -2,26 +2,16 @@ from pyspark.sql.functions import udf
 from pyspark.sql.types import StringType
 from pyspark.sql import DataFrame
 import re
-import nltk
-from nltk.corpus import stopwords
 
-# Download NLTK resources
-nltk.download('stopwords')
-stop_words = set(stopwords.words('english'))
 
-# Utility function for text cleaning
+# Utility function for text cleaning, for dunzhang/stella_en_400M_v5 only need to clean up whitespaces
 def clean_text(text):
     if isinstance(text, str):
-        text = text.lower()
         text = text.replace('\n', ' ')  # Remove new lines
         text = text.replace('\t', ' ')  # Remove tabs
         text = text.replace('\r', ' ')  # Remove returns
-        text = re.sub(r'[^a-z\s]', '', text)  # Remove non-alphanumeric characters except spaces
-        words = text.split()  # Tokenize the text
-        words = [word for word in words if word not in stop_words]  # Remove stopwords
-        text = ' '.join(words)  # Combine words back into text
         return text.strip()
-    return text  # Return original value if not a string (e.g., NaN)
+    return text 
 
 # Register the clean_text function as a UDF
 clean_text_udf = udf(clean_text, StringType())

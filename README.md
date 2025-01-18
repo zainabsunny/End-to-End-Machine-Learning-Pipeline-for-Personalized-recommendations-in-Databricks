@@ -50,7 +50,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - **Python/PySpark**: Core programming language.
 - **SQL**: To query and analyze structured data.
 - **NLP Libraries**:
-  - **SpaCy**: Text preprocessing, stemming, and lemmatization.
+  - **[Sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)**: Text preprocesser 
   - **Transformers (GPT)**: Tokenization and embedding generation for unstructured data.
 - **Delta Lake**: Storage for transactional reliability and scalability.
 - **MLflow**: To track model metrics, manage versioning, and facilitate reproducibility.
@@ -117,7 +117,6 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ### **3. Data Transformation**
 - Scaling and normalization of numerical columns.
-- Tokenization and embedding extraction from textual data using GPT models.
 
 ### **4. Exploratory Data Analysis (EDA)**
 - Visualizes data distributions (e.g., product prices, ratings).
@@ -163,10 +162,15 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - Ensures schema consistency and reliable storage.
 - Leverages Unity Catalog to provide audit trails, fine-grained access controls, and lineage tracking for all datasets.
 
+### **7. Product Embedding**
+- Utilizes the sentence-transformers/all-MiniLM-L6-v2 model to generate embeddings for product reviews, converting textual data into 384-dimensional numerical vectors.
+- Captures semantic relationships in review titles and texts, enabling advanced analysis and product understanding.
+- Combines title and text embeddings for a comprehensive representation of each product, enhancing applications like personalized recommendations, clustering, and semantic search.
+- Embeddings serve as the foundation for integrating GenAI capabilities, allowing the model to provide context-aware product insights and intelligent interactions.
+
 ### **8. Coming Soon (Future Scope)**
 - Build advanced recommendation models and evaluate performance.
 - Implement personalized email campaigns based on engagement levels.
-- Introduce reranking using LLMs for improved recommendation quality.
 
 ---
 
@@ -229,6 +233,22 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
     - user_session_index 9 (score: 9.1667e-07)
     - user_session_index 25 (score: 8.8622e-07)
     - This indicates that user 9 is most likely to interact with product 3774.
+---
+
+## **Product Embedding Output**
+- Each product is represented by a combined embedding derived from its review title and text using the sentence-transformers/all-MiniLM-L6-v2 model.
+  - review_product_id: The ID of the product for which embeddings are generated.
+  - review_title_embedding: The 384-dimensional numerical vector representing the semantic meaning of the product's review title.
+  - review_text_embedding: The 384-dimensional numerical vector representing the semantic meaning of the product's review text.
+  - combined_embedding: The averaged 384-dimensional vector combining the title and text embeddings, representing a holistic view of the product.
+- Outputs include:
+  - Semantic representations (embeddings) for each product's title and text.
+  - Combined embeddings that encapsulate both title and text semantics for deeper product understanding.
+- Example:
+  - For review_product_id 781070:
+    - review_title_embedding: A 384-dimensional vector, e.g., [-0.14797255, -0.31693813, ... , 0.7613837].
+    - review_text_embedding: A 384-dimensional vector, e.g., [0.26907432, -0.32546055, ... , 0.37493005].
+    - combined_embedding: A 384-dimensional vector combining title and text embeddings, e.g., [0.06055088, -0.32119934, ... , 0.56815687].
 ---
 
 ## Architecture Diagram

@@ -89,6 +89,19 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ## **Pipeline Workflow**
 
+### **0. Input Validation**
+- Schema Validation
+  - Defines an expected schema as a StructType with specific fields (column names, data types, nullability)
+  - Compares the actual DataFrame schema to this expected schema.
+- Column Level Check
+  - Null Value Check
+  - Duplicate Row Checks
+  - Data Type Checks
+- Other Quality Checks
+  - Date/Time Validation: Verify date formats or that date columns are within valid ranges.
+  - Numeric Validations: Ensure values (like price, rating) are non-negative or within reasonable bounds.
+  - Row Count Checks: Ensure the DataFrame meets a minimum row threshold.
+
 ### **1. Data Cleaning**
 - Standardizes column names across datasets.
 - Removes invalid or missing data.
@@ -130,12 +143,27 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Users (e.g., user sessions) and Items (e.g., product IDs) are represented as a sparse matrix where interactions are weighted by product quantity or implicit engagement.
   - Produces personalized top-N recommendations for users and identifies top-N users for items.
   
-### **6. Delta Table Management: Unity Catalog**
+### **6. Output Quality Checks for Recommendation Algorithms**
+- Collaborative Filtering
+  - DataFrame Non-Empty: Ensure at least one row of recommendations exists.
+  - Index Integrity: The product_id index should not contain nulls or duplicates.
+  - Expected Columns: Validate columns like Rec 1, Rec 2, ..., Score 1, Score 2, etc., are present.
+  - Data Types: Check that score columns are numeric.
+- FP Growth
+  - Empty DataFrame: Confirm each output is not empty.
+  - Expected Columns: Verify items and freq exist for frequent itemsets; antecedent, consequent, confidence for association rules.
+  - Column Data Types: Check that freq is integer, confidence is float, etc., as appropriate.
+- ALS Recommender
+  - Model Object: Ensure the returned ALS model is not None.
+  - Non-Empty DataFrames: Confirm user_recs and item_recs have rows.
+  - Expected Columns: For user-based recommendations, check user_session_index and recommendations columns; for item-based, check cosmetic_product_id and recommendations.
+
+### **7. Delta Table Management: Unity Catalog**
 - Stores cleaned and transformed datasets in Unity Catalog-managed Delta tables for centralized governance and access control.
 - Ensures schema consistency and reliable storage.
 - Leverages Unity Catalog to provide audit trails, fine-grained access controls, and lineage tracking for all datasets.
 
-### **7. Coming Soon (Future Scope)**
+### **8. Coming Soon (Future Scope)**
 - Build advanced recommendation models and evaluate performance.
 - Implement personalized email campaigns based on engagement levels.
 - Introduce reranking using LLMs for improved recommendation quality.

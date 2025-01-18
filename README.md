@@ -50,7 +50,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - **Python/PySpark**: Core programming language.
 - **SQL**: To query and analyze structured data.
 - **NLP Libraries**:
-  - **sentence-transformers/all-MiniLM-L6-v2**: Text preprocesser
+  - **[Sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)**: Text preprocesser 
   - **Transformers (GPT)**: Tokenization and embedding generation for unstructured data.
 - **Delta Lake**: Storage for transactional reliability and scalability.
 - **MLflow**: To track model metrics, manage versioning, and facilitate reproducibility.

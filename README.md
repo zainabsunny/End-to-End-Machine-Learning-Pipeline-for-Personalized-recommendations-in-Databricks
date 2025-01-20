@@ -165,7 +165,8 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 ### **8. Product Embedding**
 - Utilizes the sentence-transformers/all-MiniLM-L6-v2 model to generate embeddings for product reviews, converting textual data into 384-dimensional numerical vectors.
 - Captures semantic relationships in review titles and texts, enabling advanced analysis and product understanding.
-- Combines title and text embeddings for a comprehensive representation of each product, enhancing applications like personalized recommendations, clustering, and semantic search.
+- Combines title and text embeddings for a comprehensive representation of each product.
+- Aggregates embeddings across multiple reviews for the same product, creating a unified product-level embedding that represents the collective sentiment and content of all associated reviews. This aggregated embedding improves the model's ability to generalize insights and enhances downstream tasks such as recommendation precision and product clustering.
 - Embeddings serve as the foundation for integrating GenAI capabilities, allowing the model to provide context-aware product insights and intelligent interactions.
 
 ### **9. Coming Soon (Future Scope)**

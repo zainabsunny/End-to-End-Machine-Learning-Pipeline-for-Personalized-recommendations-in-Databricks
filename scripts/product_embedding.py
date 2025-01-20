@@ -2,6 +2,9 @@ from pyspark.sql.functions import udf, col
 from pyspark.sql.types import ArrayType, FloatType
 from transformers import AutoTokenizer, AutoModel
 import torch
+from pyspark.sql import functions as F
+from pyspark.sql.types import ArrayType, FloatType
+
 
 # -----------------------------
 # 1) Embedding Generation
@@ -88,3 +91,32 @@ def combine_review_embeddings(reviews_df):
         combine_embeddings_udf(col("review_title_embedding"), col("review_text_embedding"))
     )
     return reviews_df
+
+
+# -----------------------------
+# 3) Combine Embeddings Across Multiple Eeviews 
+# -----------------------------
+
+def aggregate_embeddings_by_product(reviews_df):
+    """
+    Combine embeddings across multiple reviews for the same product by mean pooling.
+
+    :param reviews_df: DataFrame with 'review_product_id' and 'combined_embedding' columns.
+    :return: DataFrame with aggregated embeddings per product.
+    """
+    # Define a UDF to aggregate embeddings using mean pooling
+    def mean_pooling(embeddings_list):
+        if embeddings_list:
+            # Calculate the mean of embeddings
+            num_embeddings = len(embeddings_list)
+            return [sum(vals) / num_embeddings for vals in zip(*embeddings_list)]
+        return []
+
+    mean_pooling_udf = F.udf(mean_pooling, ArrayType(FloatType()))
+
+    # Group by product ID and aggregate embeddings
+    aggregated_df = reviews_df.groupBy("review_product_id").agg(
+        mean_pooling_udf(F.collect_list("combined_embedding")).alias("aggregated_embedding")
+    )
+
+    return aggregated_df

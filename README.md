@@ -162,13 +162,14 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - Ensures schema consistency and reliable storage.
 - Leverages Unity Catalog to provide audit trails, fine-grained access controls, and lineage tracking for all datasets.
 
-### **7. Product Embedding**
+### **8. Product Embedding**
 - Utilizes the sentence-transformers/all-MiniLM-L6-v2 model to generate embeddings for product reviews, converting textual data into 384-dimensional numerical vectors.
 - Captures semantic relationships in review titles and texts, enabling advanced analysis and product understanding.
-- Combines title and text embeddings for a comprehensive representation of each product, enhancing applications like personalized recommendations, clustering, and semantic search.
+- Combines title and text embeddings for a comprehensive representation of each product.
+- Aggregates embeddings across multiple reviews for the same product, creating a unified product-level embedding that represents the collective sentiment and content of all associated reviews. This aggregated embedding improves the model's ability to generalize insights and enhances downstream tasks such as recommendation precision and product clustering.
 - Embeddings serve as the foundation for integrating GenAI capabilities, allowing the model to provide context-aware product insights and intelligent interactions.
 
-### **8. Coming Soon (Future Scope)**
+### **9. Coming Soon (Future Scope)**
 - Build advanced recommendation models and evaluate performance.
 - Implement personalized email campaigns based on engagement levels.
 
@@ -233,6 +234,20 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
     - user_session_index 9 (score: 9.1667e-07)
     - user_session_index 25 (score: 8.8622e-07)
     - This indicates that user 9 is most likely to interact with product 3774.
+
+### Evaluation Results
+1. Cosine Similarity Recommendations:
+  - Precision: 0.00015
+  - Recall: 0.000009
+
+2. FP-Growth Recommendations:
+  - Precision: 0.559
+  - Recall: 0.367
+
+3. ALS Recommendations:
+  - Precision: 0.0141
+  - Recall: 0.0183
+
 ---
 
 ## **Product Embedding Output**

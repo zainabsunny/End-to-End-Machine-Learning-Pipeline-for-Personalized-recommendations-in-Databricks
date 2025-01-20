@@ -21,7 +21,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
 # Cosine Similarity Recommendations
-def generate_cosine_sim_recs(df, filename, rows='user_session', cols='product_id', quantity='product_quantity', top=11):
+def generate_cosine_sim_recs(df, filename, rows='user_session', cols='cosmetic_product_id', quantity='product_quantity', top=11):
     """
     Generate recommendations using cosine similarity.
     Tracks metrics and artifacts with MLflow.
@@ -36,6 +36,7 @@ def generate_cosine_sim_recs(df, filename, rows='user_session', cols='product_id
             products = list(sorted(set(df[cols])))
             quantities = list(df[quantity])
 
+            # Map user sessions (rows) and product IDs (columns) to numeric indices
             rs = pd.Categorical(df[rows], categories=orders).codes
             cs = pd.Categorical(df[cols], categories=products).codes
 
@@ -60,7 +61,7 @@ def generate_cosine_sim_recs(df, filename, rows='user_session', cols='product_id
 
             for i in range(len(products)):
                 top_recs = df_sim.iloc[:, i].sort_values(ascending=False)
-                top_recs = top_recs[top_recs.index != df_sim.index[i]]
+                top_recs = top_recs[top_recs.index != df_sim.index[i]]  # Exclude self-recommendations
                 num_recs = min(top - 1, len(top_recs), df_match.shape[1])
 
                 df_match.iloc[i, :num_recs] = top_recs.iloc[:num_recs].index
@@ -68,10 +69,16 @@ def generate_cosine_sim_recs(df, filename, rows='user_session', cols='product_id
 
             # Combine recommendations and scores
             df_new = df_match.merge(df_score, how="inner", left_index=True, right_index=True)
-            df_new.index.names = ['product_id']
+            df_new.index.names = ['cosmetic_product_id']
+
+            # Add user_session to align with the ground truth
+            df_new.reset_index(inplace=True)
+            df_new['user_session'] = df_new['cosmetic_product_id'].map(
+                dict(zip(products, orders))
+            )
 
             # Save recommendations to file
-            df_new.to_csv(filename)
+            df_new.to_csv(filename, index=False)
             mlflow.log_artifact(filename)
 
             mlflow.log_metric("recommendation_generation_time", round(time.time() - start_time, 2))

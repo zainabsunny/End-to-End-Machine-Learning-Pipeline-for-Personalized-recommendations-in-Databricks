@@ -256,14 +256,17 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - review_title_embedding: The 384-dimensional numerical vector representing the semantic meaning of the product's review title.
   - review_text_embedding: The 384-dimensional numerical vector representing the semantic meaning of the product's review text.
   - combined_embedding: The averaged 384-dimensional vector combining the title and text embeddings, representing a holistic view of the product.
+  - aggregated_embedding: The mean-pooled 384-dimensional vector that consolidates embeddings from multiple reviews into a single, unified representation for each product.
 - Outputs include:
   - Semantic representations (embeddings) for each product's title and text.
   - Combined embeddings that encapsulate both title and text semantics for deeper product understanding.
+  - Product-level embeddings computed by aggregating (mean pooling) the combined embeddings across all reviews for a product.
 - Example:
   - For review_product_id 781070:
     - review_title_embedding: A 384-dimensional vector, e.g., [-0.14797255, -0.31693813, ... , 0.7613837].
     - review_text_embedding: A 384-dimensional vector, e.g., [0.26907432, -0.32546055, ... , 0.37493005].
     - combined_embedding: A 384-dimensional vector combining title and text embeddings, e.g., [0.06055088, -0.32119934, ... , 0.56815687].
+    - aggregated_embedding: A unified 384-dimensional vector representing the product, e.g., [0.10503072, -0.31056788, ..., 0.59124565].
 ---
 
 ## Architecture Diagram

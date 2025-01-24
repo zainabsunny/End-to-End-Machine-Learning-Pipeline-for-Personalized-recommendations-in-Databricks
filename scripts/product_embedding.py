@@ -3,8 +3,6 @@ from pyspark.sql.types import ArrayType, FloatType
 from transformers import AutoTokenizer, AutoModel
 import torch
 from pyspark.sql import functions as F
-from pyspark.sql.types import ArrayType, FloatType
-
 
 # -----------------------------
 # 1) Embedding Generation
@@ -15,7 +13,8 @@ def get_minilm_embeddings(text, use_gpu=False):
     Generate embeddings for the given text using sentence-transformers/all-MiniLM-L6-v2.
     """
     if not hasattr(get_minilm_embeddings, "tokenizer"):
-        print("Initializing tokenizer and model...")
+        # Initialize tokenizer and model for each worker
+        print("Initializing tokenizer and model in worker...")
         get_minilm_embeddings.tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
         get_minilm_embeddings.model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
         if use_gpu and torch.cuda.is_available():
@@ -92,9 +91,8 @@ def combine_review_embeddings(reviews_df):
     )
     return reviews_df
 
-
 # -----------------------------
-# 3) Combine Embeddings Across Multiple Eeviews 
+# 3) Aggregate Embeddings Across Multiple Reviews
 # -----------------------------
 
 def aggregate_embeddings_by_product(reviews_df):

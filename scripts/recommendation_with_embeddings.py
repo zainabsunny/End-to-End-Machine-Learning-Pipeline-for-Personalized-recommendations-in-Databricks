@@ -26,7 +26,7 @@ def generate_cosine_sim_recs_with_embeddings(product_embeddings_df, filename, to
     with mlflow.start_run(run_name="Cosine Similarity with Embeddings"):
         try:
             # Extract product IDs and embeddings
-            product_ids = product_embeddings_df["cosmetic_product_id"]
+            product_ids = product_embeddings_df["review_product_id"]
             embeddings = np.array(product_embeddings_df["aggregated_embedding"].to_list())
 
             # Compute cosine similarity between embeddings
@@ -126,14 +126,14 @@ def run_als_recommender_with_embeddings(
 
             # Prepare data: Convert string user_session to numeric index
             user_indexer = StringIndexer(inputCol=user_col, outputCol="user_session_index", handleInvalid="skip")
-            item_indexer = StringIndexer(inputCol=item_col, outputCol="cosmetic_product_id_index", handleInvalid="skip")
+            item_indexer = StringIndexer(inputCol=item_col, outputCol="review_product_id_index", handleInvalid="skip")
             pipeline = Pipeline(stages=[user_indexer, item_indexer])
             indexed_df = pipeline.fit(joined_df).transform(joined_df)
 
             # Train ALS model
             als = ALS(
                 userCol="user_session_index",
-                itemCol="cosmetic_product_id_index",
+                itemCol="review_product_id_index",
                 ratingCol=rating_col,
                 rank=rank,
                 maxIter=maxIter,

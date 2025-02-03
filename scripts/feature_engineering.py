@@ -54,10 +54,15 @@ def add_predictor_features(cosmetic_df):
 # -----------------------------
 
 def process_reviews_df(reviews_df):
-    """Clean and process reviews DataFrame with stemming and lemmatization."""
+    """Clean and process reviews DataFrame by handling missing values."""
+
+    # Print available columns for debugging
+    print(f"✅ Available columns in reviews_df: {reviews_df.columns}")
+
+    # Use correct column names based on available data
     reviews_df = reviews_df.fillna({
-        "review_title_clean": "No title",
-        "review_text_clean": "No review"
+        "review_title": "No title",
+        "review_text": "No review"
     })
 
     return reviews_df

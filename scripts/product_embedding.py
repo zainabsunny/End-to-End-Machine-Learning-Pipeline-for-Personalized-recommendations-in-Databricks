@@ -3,6 +3,15 @@ from pyspark.sql.types import ArrayType, FloatType
 from transformers import AutoTokenizer, AutoModel
 import torch
 from pyspark.sql import functions as F
+import pandas as pd
+import numpy as np
+from pyspark.sql.functions import pandas_udf
+
+from pyspark.sql.functions import udf, col
+from pyspark.sql.types import ArrayType, FloatType
+from transformers import AutoTokenizer, AutoModel
+import torch
+from pyspark.sql import functions as F
 
 # -----------------------------
 # 1) Embedding Generation
@@ -56,11 +65,11 @@ def generate_review_embeddings(reviews_df, use_gpu=False):
     Generate embeddings for review titles and texts in the reviews DataFrame.
     """
     reviews_df = reviews_df.fillna({
-        "review_title_clean": "No title",
-        "review_text_clean": "No review"
+        "review_title": "No title",
+        "review_text": "No review"
     })
-    reviews_df = reviews_df.withColumn("review_title_embedding", minilm_embedding_udf(col("review_title_clean")))
-    reviews_df = reviews_df.withColumn("review_text_embedding", minilm_embedding_udf(col("review_text_clean")))
+    reviews_df = reviews_df.withColumn("review_title_embedding", minilm_embedding_udf(col("review_title")))
+    reviews_df = reviews_df.withColumn("review_text_embedding", minilm_embedding_udf(col("review_text")))
     return reviews_df
 
 # -----------------------------
@@ -118,3 +127,37 @@ def aggregate_embeddings_by_product(reviews_df):
     )
 
     return aggregated_df
+
+#------------------------------
+# 4) Clean Embeddings
+# -----------------------------
+
+def validate_embeddings(df, embedding_col="aggregated_embedding", expected_dim=384):
+    """
+    Validate embeddings efficiently by checking their size.
+    """
+    return df.withColumn(
+        "is_valid_embedding",
+        when((col(embedding_col).isNotNull()) & (F.expr(f"size({embedding_col})") == expected_dim), True)
+        .otherwise(False)
+    )
+
+def replace_invalid_embeddings(df, embedding_col="aggregated_embedding", expected_dim=384):
+    """
+    Replace invalid embeddings with a zero vector efficiently.
+    """
+    default_embedding = [0.0] * expected_dim
+    return df.withColumn(
+        embedding_col,
+        when(col("is_valid_embedding") == False, F.array(*[F.lit(value) for value in default_embedding]))
+        .otherwise(col(embedding_col))
+    ).drop("is_valid_embedding")
+
+def clean_aggregated_embeddings(aggregated_embeddings_df):
+    """
+    Validate and clean the aggregated embeddings efficiently.
+    """
+    validated_df = validate_embeddings(aggregated_embeddings_df)
+    cleaned_df = replace_invalid_embeddings(validated_df)
+    
+    return cleaned_df

@@ -6,6 +6,10 @@ from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.stat import Correlation
 from collections import Counter
 
+# -----------------------------
+# 1) EDA
+# -----------------------------
+
 def perform_eda(combined_df, reviews_df):
     """
     Perform EDA on the combined and review datasets.

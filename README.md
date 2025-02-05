@@ -50,8 +50,8 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - **Python/PySpark**: Core programming language.
 - **SQL**: To query and analyze structured data.
 - **NLP Libraries**:
-  - **[Sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)**: Text preprocesser 
-  - **Transformers (GPT)**: Tokenization and embedding generation for unstructured data.
+  - **[Sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)**: Text preprocesser and product embedding
+  - **[Facebook/bart-large-mnli](https://huggingface.co/facebook/bart-large-mnli)**: Topic classification and sentiment analysis
 - **Delta Lake**: Storage for transactional reliability and scalability.
 - **MLflow**: To track model metrics, manage versioning, and facilitate reproducibility.
 - **Unity Catalog**: For Data governance and management.
@@ -164,14 +164,10 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ### **8. Product Embedding**
 - Utilizes the sentence-transformers/all-MiniLM-L6-v2 model to generate embeddings for product reviews, converting textual data into 384-dimensional numerical vectors.
-- Captures semantic relationships in review titles and texts, enabling advanced analysis and product understanding.
-- Combines title and text embeddings for a comprehensive representation of each product.
-- Aggregates embeddings across multiple reviews for the same product, creating a unified product-level embedding that represents the collective sentiment and content of all associated reviews. This aggregated embedding improves the model's ability to generalize insights and enhances downstream tasks such as recommendation precision and product clustering.
-- Embeddings serve as the foundation for integrating GenAI capabilities, allowing the model to provide context-aware product insights and intelligent interactions.
-
-### **9. Coming Soon (Future Scope)**
-- Build advanced recommendation models and evaluate performance.
-- Implement personalized email campaigns based on engagement levels.
+- Captures semantic relationships in review titles, texts, extracted topics, and sentiment.
+- Combines title, text, topic, and sentiment embeddings for a comprehensive representation of each product.
+- Aggregates embeddings across multiple reviews for the same product, creating a unified product-level embedding that represents the collective sentiment and content of all associated reviews.
+-Embeddings serve as the foundation for integrating GenAI capabilities, allowing the model to provide context-aware product insights and intelligent interactions.
 
 ---
 
@@ -251,22 +247,30 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 ---
 
 ## **Product Embedding Output**
-- Each product is represented by a combined embedding derived from its review title and text using the sentence-transformers/all-MiniLM-L6-v2 model.
-  - review_product_id: The ID of the product for which embeddings are generated.
+- Each product is represented by a combined embedding derived from its review title, text, extracted topics, and sentiment using the sentence-transformers/all-MiniLM-L6-v2 model.
+  - review_product_id: The ID of the product for which embeddings are generated
   - review_title_embedding: The 384-dimensional numerical vector representing the semantic meaning of the product's review title.
   - review_text_embedding: The 384-dimensional numerical vector representing the semantic meaning of the product's review text.
-  - combined_embedding: The averaged 384-dimensional vector combining the title and text embeddings, representing a holistic view of the product.
-  - aggregated_embedding: The mean-pooled 384-dimensional vector that consolidates embeddings from multiple reviews into a single, unified representation for each product.
+  - topic_embedding: The 384-dimensional vector representing extracted topics from reviews.
+  - sentiment_embedding: The 384-dimensional vector representing the sentiment analysis of the reviews.
+  - combined_embedding: The averaged 384-dimensional vector combining title and text embeddings, representing a holistic view of the product.
+  - final_embedding: A unified 384-dimensional vector combining review, topic, and sentiment embeddings, representing a complete semantic understanding of the product.
 - Outputs include:
-  - Semantic representations (embeddings) for each product's title and text.
-  - Combined embeddings that encapsulate both title and text semantics for deeper product understanding.
-  - Product-level embeddings computed by aggregating (mean pooling) the combined embeddings across all reviews for a product.
+  - Semantic representations (embeddings) for each product's title, text, topics, and sentiment.
+  - Combined embeddings that encapsulate review title and text semantics for deeper product understanding.
+  - Final product-level embeddings computed by aggregating (mean pooling) the combined embeddings across all reviews for a product.
 - Example:
   - For review_product_id 781070:
-    - review_title_embedding: A 384-dimensional vector, e.g., [-0.14797255, -0.31693813, ... , 0.7613837].
+    - review_title_embedding: A 384-dimensional vector, e.g., [-0.14797255, -0 31693813, ... , 0.7613837].
     - review_text_embedding: A 384-dimensional vector, e.g., [0.26907432, -0.32546055, ... , 0.37493005].
+    - topic_embedding: A 384-dimensional vector, e.g., [0.15072455, -0.23781678, ... , 0.49871013].
+    - sentiment_embedding: A 384-dimensional vector, e.g., [-0.12938764, 0.26547293, ... , 0.37951243].
     - combined_embedding: A 384-dimensional vector combining title and text embeddings, e.g., [0.06055088, -0.32119934, ... , 0.56815687].
-    - aggregated_embedding: A unified 384-dimensional vector representing the product, e.g., [0.10503072, -0.31056788, ..., 0.59124565].
+    - final_embedding: A unified 384-dimensional vector representing the product, e.g., [0.10503072, -0.31056788, ..., 0.59124565].
+
+## **Product Embedding Model Output**
+
+
 ---
 
 ## Architecture Diagram

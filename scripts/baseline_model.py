@@ -19,8 +19,10 @@ from pyspark.sql import functions as F
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+# ---------------------------------------
+# 1) osine Similarity Recommendations
+# ---------------------------------------
 
-# Cosine Similarity Recommendations
 def generate_cosine_sim_recs(df, filename, rows='user_session', cols='cosmetic_product_id', quantity='product_quantity', top=11):
     """
     Generate recommendations using cosine similarity.
@@ -89,7 +91,10 @@ def generate_cosine_sim_recs(df, filename, rows='user_session', cols='cosmetic_p
             mlflow.log_param("error", str(e))
             raise e
 
-# FP-Growth
+# ---------------------------------------
+# 2) FP-Growth
+# ---------------------------------------
+
 def run_fp_growth(df, min_support=0.001, min_confidence=0.1):
     """
     Run FP-Growth on the input PySpark DataFrame to generate frequent itemsets and association rules.
@@ -132,7 +137,11 @@ def run_fp_growth(df, min_support=0.001, min_confidence=0.1):
         except Exception as e:
             mlflow.log_param("error", str(e))
             raise e
-    
+
+# ---------------------------------------
+# 3) ALS 
+# ---------------------------------------
+
 def run_als_recommender(
     spark_df, 
     user_col='user_session', 

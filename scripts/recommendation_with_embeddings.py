@@ -6,6 +6,8 @@ from pyspark.sql.functions import explode, col, collect_set, when, expr
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from pyspark.sql.functions import udf, col, explode, collect_set, count
+
 
 # ---------------------------------------
 # 1) Train ALS with MLflow
@@ -54,28 +56,67 @@ def train_als_model(df):
 # 2) Train FP-Growth with MLflow
 # ---------------------------------------
 
-def train_fp_growth(df):
+# def train_fp_growth(df):
+#     """
+#     Train FP-Growth for association rule mining and log in MLflow.
+#     Uses `topics` instead of embeddings.
+#     """
+#     with mlflow.start_run(run_name="FP-Growth Training"):
+#         try:
+#             df = df.withColumn("topic", explode(col("topics")))
+
+#             transactions = df.groupBy("cosmetic_product_id").agg(
+#                 collect_set("topic").alias("topics")  # ✅ Use topics, not embeddings
+#             )
+
+#             fp_growth = FPGrowth(itemsCol="topics", minSupport=0.01, minConfidence=0.2)
+#             fp_model = fp_growth.fit(transactions)
+
+#             # Log model to MLflow
+#             mlflow.spark.log_model(fp_model, "fp_growth_model")
+#             mlflow.log_param("minSupport", 0.01)
+#             mlflow.log_param("minConfidence", 0.2)
+
+#             print("✅ FP-Growth model trained successfully and logged to MLflow.")
+#             return fp_model
+
+#         except Exception as e:
+#             print(f"❌ Error training FP-Growth model: {e}")
+#             raise e
+
+def train_fp_growth(df, min_support=0.05, min_confidence=0.3):
     """
-    Train FP-Growth for association rule mining and log in MLflow.
-    Uses `topics` instead of embeddings.
+    Train FP-Growth for association rule mining with optimizations.
+    Uses topics instead of embeddings.
     """
-    with mlflow.start_run(run_name="FP-Growth Training"):
+
+    with mlflow.start_run(run_name="Optimized FP-Growth Training"):
         try:
+            # Explode topics to get individual topic transactions
             df = df.withColumn("topic", explode(col("topics")))
 
-            transactions = df.groupBy("cosmetic_product_id").agg(
-                collect_set("topic").alias("topics")  # ✅ Use topics, not embeddings
-            )
+            # 🔥 Filter out rare topics (at least 5 occurrences)
+            topic_counts = df.groupBy("topic").count().filter(col("count") >= 5)
+            df = df.join(topic_counts, "topic", "inner").drop("count")  # ✅ Only keep frequent topics
 
-            fp_growth = FPGrowth(itemsCol="topics", minSupport=0.01, minConfidence=0.2)
+            # 🔥 Group by product and collect unique topics
+            transactions = df.groupBy("cosmetic_product_id").agg(
+                collect_set("topic").alias("topics")
+            ).cache()  # ✅ Cache for performance boost
+
+            # ✅ If too many topics per product, keep only top 5
+            transactions = transactions.withColumn("topics", transactions["topics"].cast("array<string>"))
+            
+            # 🔥 Reduce support threshold to speed up training
+            fp_growth = FPGrowth(itemsCol="topics", minSupport=min_support, minConfidence=min_confidence)
             fp_model = fp_growth.fit(transactions)
 
-            # Log model to MLflow
+            # ✅ Log model parameters
             mlflow.spark.log_model(fp_model, "fp_growth_model")
-            mlflow.log_param("minSupport", 0.01)
-            mlflow.log_param("minConfidence", 0.2)
+            mlflow.log_param("minSupport", min_support)
+            mlflow.log_param("minConfidence", min_confidence)
 
-            print("✅ FP-Growth model trained successfully and logged to MLflow.")
+            print("✅ Optimized FP-Growth model trained successfully and logged to MLflow.")
             return fp_model
 
         except Exception as e:

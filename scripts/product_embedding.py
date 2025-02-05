@@ -8,7 +8,7 @@ from pyspark.sql.functions import when, size, array
 
 
 # ---------------------------------------
-# 1) MiniLM Embedding Function
+# 1) MiniLM Embedding 
 # ---------------------------------------
 
 def get_minilm_embeddings(text, use_gpu=False):

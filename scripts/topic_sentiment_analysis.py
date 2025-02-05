@@ -2,12 +2,19 @@ from transformers import pipeline
 from pyspark.sql.functions import col, udf, explode
 from pyspark.sql.types import ArrayType, StringType, StructType, StructField
 
-# Load lightweight transformers for topic classification and sentiment analysis
+# ---------------------------------------
+# 1) Load lightweight transformers for topic classification and sentiment analysis 
+# ---------------------------------------
+
 topic_pipeline = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
 
-# Define topic categories (modify as needed)
+# ---------------------------------------
+# 2) Topic categories  
+# ---------------------------------------
+
 topic_labels = ["product quality", "packaging", "price", "customer service", "delivery", "ingredients", "effectiveness"]
+
 
 # UDF for topic extraction
 def extract_topics(review_text):
@@ -31,7 +38,10 @@ sentiment_udf = udf(get_sentiment, ArrayType(StructType([
     StructField("score", StringType(), True)
 ])))
 
-# Function to apply LLM processing
+# ---------------------------------------
+# 3) LLM processing 
+# ---------------------------------------
+
 def process_reviews(spark_df):
     """
     Process the reviews DataFrame by extracting topics and sentiments.
@@ -49,7 +59,10 @@ def process_reviews(spark_df):
     )
     return df_processed
 
-# Function to analyze topic distribution
+# ---------------------------------------
+# 3) Analyze topic distribution
+# ---------------------------------------
+
 def analyze_topics(spark_df):
     """
     Analyzes topic distribution by event type.

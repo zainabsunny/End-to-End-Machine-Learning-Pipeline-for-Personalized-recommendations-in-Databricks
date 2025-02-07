@@ -141,6 +141,12 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Handles implicit feedback (e.g., clicks, views, purchases) and prevents NaN predictions with a cold-start strategy.
   - Users (e.g., user sessions) and Items (e.g., product IDs) are represented as a sparse matrix where interactions are weighted by product quantity or implicit engagement.
   - Produces personalized top-N recommendations for users and identifies top-N users for items.
+- NCF (Neural Collaborative Filtering) Recommender:
+  - Uses deep learning to model user-item interactions, leveraging both user and item embeddings.
+  - Handles implicit feedback (e.g., clicks, views, purchases) by learning representations from interactions.
+  - Users (e.g., user sessions) and Items (e.g., product IDs) are embedded in a dense space, capturing latent features for better recommendations.
+  - Employs a multi-layer perceptron (MLP) and generalized matrix factorization (GMF) to learn interaction patterns.
+  - Produces personalized top-N recommendations for users and identifies top-N users for items based on learned representations.
   
 ### **6. Output Quality Checks for Recommendation Algorithms**
 - Collaborative Filtering
@@ -154,6 +160,10 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Column Data Types: Check that freq is integer, confidence is float, etc., as appropriate.
 - ALS Recommender
   - Model Object: Ensure the returned ALS model is not None.
+  - Non-Empty DataFrames: Confirm user_recs and item_recs have rows.
+  - Expected Columns: For user-based recommendations, check user_session_index and recommendations columns; for item-based, check cosmetic_product_id and recommendations.
+- NCF Recommender
+  - Model Object: Ensure the returned NCF model is not None.
   - Non-Empty DataFrames: Confirm user_recs and item_recs have rows.
   - Expected Columns: For user-based recommendations, check user_session_index and recommendations columns; for item-based, check cosmetic_product_id and recommendations.
 
@@ -231,6 +241,20 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
     - user_session_index 25 (score: 8.8622e-07)
     - This indicates that user 9 is most likely to interact with product 3774.
 
+#### **6. Neural Collaborative Filtering (NCF)**
+  - Each cosmetic_id is associated with a list of users (user_session_index) ranked by predicted interaction score, indicating which users are most likely to engage with the product.
+    - cosmetic_id: The ID of the product for which recommendations are generated.
+    - user_session_index: The IDs of the users most likely to engage with the product, ranked by predicted interaction score.
+    - rating: The predicted score for the user-product pair, indicating the likelihood of user interaction.
+  - Outputs include:
+    - Top-N users most likely to engage with each product.
+    - Scores indicating the likelihood of interaction between each user and the product.
+  - Example:
+    - For cosmetic_id 18288, the top users likely to engage are:
+    - user_session_index 26313 (score: 9.1667e-07)
+    - user_session_index 7555 (score: 8.8622e-07)
+    - This indicates that user 26313 is most likely to interact with product 18288.
+
 ### Evaluation Results
 1. Cosine Similarity Recommendations:
   - Precision: 0.00015
@@ -243,6 +267,10 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 3. ALS Recommendations:
   - Precision: 0.0141
   - Recall: 0.0183
+
+4. NCF Recommendations:
+  - Precision: 1.0
+  - Recall: 1.0
 
 ---
 
@@ -270,6 +298,34 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ## **Product Embedding Model Output**
 
+### Neural Collaborative Filtering (NCF) with Embedded Product Representations
+  - Utilizes Neural Collaborative Filtering (NCF) with product embeddings to improve recommendation accuracy.
+  - Captures deep **user-product interactions** using **learned embeddings** and fully connected layers.
+  - Assigns numerical interaction scores based on event types:
+    - `purchase` → **2.0**  
+    - `add-to-cart` → **1.5**  
+    - `view` → **1.0**  
+    - `other interactions` → **0.5** 
+  - Output 
+    - Each user_id receives a ranked list of recommended products, based on predicted interaction scores.
+    - For example, for user_id 10, the model ranks the top products they are most likely to engage with, assigning higher scores to those with a stronger likelihood of interaction.
+    - Top-N product recommendationsfor each user.
+    - Predicted scores indicating interaction likelihood.
+    - Context-aware recommendations, leveraging both structured session-based data and textual embeddings.
+  - Example:
+    - For **user_id 10**, the top product recommendations are:
+      | **Rank** | **Product ID** | **Predicted Score** |
+      |---------|---------------|--------------------|
+      | 1       | 45            | **1.832**         |
+      | 2       | 87            | **1.712**         |
+      | 3       | 120           | **1.508**         |
+
+    - This suggests that user **10** is most likely to engage with product **45**.
+
+### Evaluation Results
+  - RMSE: 0.12832877795720202 
+  - Precision: 1.0
+  - Recall: 0.5
 
 ---
 

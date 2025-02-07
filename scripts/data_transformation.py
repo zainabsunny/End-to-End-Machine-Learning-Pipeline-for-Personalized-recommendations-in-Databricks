@@ -10,12 +10,15 @@ def transform_cosmetic_data(cosmetic_df):
     """
     Transform structured interaction data (e.g., scaling prices).
     """
-    # Check if `price` column exists
-    if "price" not in cosmetic_df.columns:
-        raise ValueError("Column 'price' not found in cosmetic_df. Available columns: ", cosmetic_df.columns)
+    # Use the correct column name
+    price_col = "cosmetic_price"
+    
+    # Check if `cosmetic_price` column exists
+    if price_col not in cosmetic_df.columns:
+        raise ValueError(f"Column '{price_col}' not found in cosmetic_df. Available columns: {cosmetic_df.columns}")
 
-    # Scale `price`
-    assembler = VectorAssembler(inputCols=["price"], outputCol="price_vec")
+    # Scale `cosmetic_price`
+    assembler = VectorAssembler(inputCols=[price_col], outputCol="price_vec")
     cosmetic_df = assembler.transform(cosmetic_df)
     
     scaler = StandardScaler(inputCol="price_vec", outputCol="price_scaled")

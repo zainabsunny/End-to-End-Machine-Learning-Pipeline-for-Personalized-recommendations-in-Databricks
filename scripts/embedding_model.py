@@ -5,6 +5,10 @@ import mlflow
 from pyspark.sql.functions import when, col
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import DataLoader, TensorDataset
+import numpy as np
+import pandas as pd
+import time
+from pyspark.sql import SparkSession
 
 # ---------------------------------------
 # 1) Assign Numerical Values to Event Types
@@ -104,3 +108,59 @@ def train_ncf_embedded(final_embedding_df, num_epochs=10, batch_size=64, learnin
         mlflow.pytorch.log_model(model, "ncf_model")
 
     return model, user_encoder, product_encoder, interaction_data
+
+
+def generate_ncf_embedded_recommendations(model, interaction_data, user_encoder, product_encoder, filename="ncf_embedded_recs.csv", k=10):
+    """
+    Generate NCF recommendations for each user using the trained embedded model.
+    Saves recommendations to both a CSV file and Unity Catalog.
+    """
+    with mlflow.start_run(run_name="NCF Embedded Recommendations"):
+        try:
+            start_time = time.time()
+
+            # Get unique user and product IDs
+            user_ids = interaction_data["user_id"].unique()
+            product_ids = interaction_data["cosmetic_product_id"].unique()
+
+            recommendations = []
+
+            for user in user_ids:
+                # Convert user IDs safely (unseen users get a default value)
+                user_idx = torch.tensor(
+                    [user_encoder.transform([user])[0] if user in user_encoder.classes_ else 0] * len(product_ids),
+                    dtype=torch.long
+                )
+
+                # Convert product IDs safely (unseen products get a default value)
+                item_idx = torch.tensor([
+                    product_encoder.transform([item])[0] if item in product_encoder.classes_ else 0 for item in product_ids
+                ], dtype=torch.long)
+
+
+                # Predict scores
+                with torch.no_grad():
+                    scores = model(user_idx, item_idx).squeeze().numpy()
+
+                # Get top K recommended products
+                top_k_items = product_ids[np.argsort(scores)[-k:][::-1]]
+
+                # Store recommendations in a DataFrame format
+                for rank, item in enumerate(top_k_items, 1):
+                    recommendations.append([user, item, rank])
+
+            # Convert to Pandas DataFrame
+            rec_df = pd.DataFrame(recommendations, columns=["user_id", "cosmetic_product_id", "rank"])
+
+            # Save to CSV
+            rec_df.to_csv(filename, index=False)
+            mlflow.log_artifact(filename)
+
+            mlflow.log_metric("recommendation_generation_time", round(time.time() - start_time, 2))
+            print(f"NCF Embedded recommendations saved to {filename}")
+
+            return rec_df
+
+        except Exception as e:
+            mlflow.log_param("error", str(e))
+            raise e

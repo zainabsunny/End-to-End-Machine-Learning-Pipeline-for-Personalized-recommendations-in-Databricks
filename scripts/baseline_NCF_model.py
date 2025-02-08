@@ -7,6 +7,9 @@ from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 from sklearn.metrics import precision_score, recall_score, mean_squared_error
+import time
+import pandas as pd
+
 
 # ---------------------------------------
 # 1) Prepare Data for NCF Training
@@ -100,23 +103,43 @@ def train_ncf(purchase_df, num_epochs=10, batch_size=64, learning_rate=0.001):
 
     return model, user_encoder, product_encoder, interaction_data
 
-def generate_ncf_recommendations(model, interaction_data, user_encoder, product_encoder, k=10):
+def generate_ncf_recommendations(model, interaction_data, user_encoder, product_encoder, filename="ncf_recommendations.csv", k=10):
     """
-    Generate NCF recommendations for each user.
+    Generate NCF recommendations for each user and save results to a CSV file.
     """
-    user_ids = interaction_data["user_id"].unique()
-    product_ids = interaction_data["cosmetic_product_id"].unique()
+    with mlflow.start_run(run_name="NCF Recommendations"):
+        try:
+            start_time = time.time()
 
-    recommendations = {}
+            user_ids = interaction_data["user_id"].unique()
+            product_ids = interaction_data["cosmetic_product_id"].unique()
 
-    for user in user_ids:
-        user_tensor = torch.tensor([user] * len(product_ids), dtype=torch.long)
-        item_tensor = torch.tensor(product_ids, dtype=torch.long)
+            recommendations = []
+            
+            for user in user_ids:
+                user_tensor = torch.tensor([user] * len(product_ids), dtype=torch.long)
+                item_tensor = torch.tensor(product_ids, dtype=torch.long)
 
-        with torch.no_grad():
-            scores = model(user_tensor, item_tensor).squeeze().numpy()
+                with torch.no_grad():
+                    scores = model(user_tensor, item_tensor).squeeze().numpy()
 
-        top_k_items = product_ids[np.argsort(scores)[-k:][::-1]]
-        recommendations[user] = top_k_items
+                top_k_items = product_ids[np.argsort(scores)[-k:][::-1]]
+                top_k_scores = np.sort(scores)[-k:][::-1]  # Get sorted scores
+                
+                for i in range(len(top_k_items)):
+                    recommendations.append([user, top_k_items[i], top_k_scores[i]])
 
-    return recommendations
+            # Convert to DataFrame
+            df_recs = pd.DataFrame(recommendations, columns=["user_id", "recommended_product_id", "score"])
+
+            # Save to CSV
+            df_recs.to_csv(filename, index=False)
+            mlflow.log_artifact(filename)
+
+            mlflow.log_metric("recommendation_generation_time", round(time.time() - start_time, 2))
+            print("NCF recommendations generated and saved to CSV.")
+            return df_recs
+
+        except Exception as e:
+            mlflow.log_param("error", str(e))
+            raise e

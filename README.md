@@ -302,30 +302,28 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Utilizes Neural Collaborative Filtering (NCF) with product embeddings to improve recommendation accuracy.
   - Captures deep **user-product interactions** using **learned embeddings** and fully connected layers.
   - Assigns numerical interaction scores based on event types:
-    - `purchase` → **2.0**  
-    - `add-to-cart` → **1.5**  
-    - `view` → **1.0**  
-    - `other interactions` → **0.5** 
+    - `purchase` → **3**  
+    - `add-to-cart` → **2**  
+    - `view` → **1**  
   - Output 
     - Each user_id receives a ranked list of recommended products, based on predicted interaction scores.
     - For example, for user_id 10, the model ranks the top products they are most likely to engage with, assigning higher scores to those with a stronger likelihood of interaction.
-    - Top-N product recommendationsfor each user.
+    - Top-N product recommendations for each user.
     - Predicted scores indicating interaction likelihood.
-    - Context-aware recommendations, leveraging both structured session-based data and textual embeddings.
+    - Context-aware recommendations, leveraging both structured session-based data and textual embeddings
   - Example:
-    - For **user_id 10**, the top product recommendations are:
-      | **Rank** | **Product ID** | **Predicted Score** |
-      |---------|---------------|--------------------|
-      | 1       | 45            | **1.832**         |
-      | 2       | 87            | **1.712**         |
-      | 3       | 120           | **1.508**         |
-
-    - This suggests that user **10** is most likely to engage with product **45**.
+    - For user_id 10, the top product recommendations are:
+      - 1st: Product 22
+      - 2nd: Product 65
+      - 3rd: Product 25
+      - 4th: Product 51
+      - 5th: Product 16
+    - This suggests that user 10 is most likely to engage with Product 22, followed by Product 65 and so on.
 
 ### Evaluation Results
-  - RMSE: 0.12832877795720202 
-  - Precision: 1.0
-  - Recall: 0.5
+  - Precision: 0.1111
+  - Recall: 0.3333
+  - F1-Score: 0.1666
 
 ---
 

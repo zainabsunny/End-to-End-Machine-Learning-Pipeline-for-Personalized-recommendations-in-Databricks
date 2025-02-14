@@ -50,8 +50,8 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - **Python/PySpark**: Core programming language.
 - **SQL**: To query and analyze structured data.
 - **NLP Libraries**:
-  - **[Sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)**: Text preprocesser 
-  - **Transformers (GPT)**: Tokenization and embedding generation for unstructured data.
+  - **[Sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)**: Text preprocesser and product embedding
+  - **[Facebook/bart-large-mnli](https://huggingface.co/facebook/bart-large-mnli)**: Topic classification and sentiment analysis
 - **Delta Lake**: Storage for transactional reliability and scalability.
 - **MLflow**: To track model metrics, manage versioning, and facilitate reproducibility.
 - **Unity Catalog**: For Data governance and management.
@@ -141,6 +141,12 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Handles implicit feedback (e.g., clicks, views, purchases) and prevents NaN predictions with a cold-start strategy.
   - Users (e.g., user sessions) and Items (e.g., product IDs) are represented as a sparse matrix where interactions are weighted by product quantity or implicit engagement.
   - Produces personalized top-N recommendations for users and identifies top-N users for items.
+- NCF (Neural Collaborative Filtering) Recommender:
+  - Uses deep learning to model user-item interactions, leveraging both user and item embeddings.
+  - Handles implicit feedback (e.g., clicks, views, purchases) by learning representations from interactions.
+  - Users (e.g., user sessions) and Items (e.g., product IDs) are embedded in a dense space, capturing latent features for better recommendations.
+  - Employs a multi-layer perceptron (MLP) and generalized matrix factorization (GMF) to learn interaction patterns.
+  - Produces personalized top-N recommendations for users and identifies top-N users for items based on learned representations.
   
 ### **6. Output Quality Checks for Recommendation Algorithms**
 - Collaborative Filtering
@@ -156,6 +162,10 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Model Object: Ensure the returned ALS model is not None.
   - Non-Empty DataFrames: Confirm user_recs and item_recs have rows.
   - Expected Columns: For user-based recommendations, check user_session_index and recommendations columns; for item-based, check cosmetic_product_id and recommendations.
+- NCF Recommender
+  - Model Object: Ensure the returned NCF model is not None.
+  - Non-Empty DataFrames: Confirm user_recs and item_recs have rows.
+  - Expected Columns: For user-based recommendations, check user_session_index and recommendations columns; for item-based, check cosmetic_product_id and recommendations.
 
 ### **7. Delta Table Management: Unity Catalog**
 - Stores cleaned and transformed datasets in Unity Catalog-managed Delta tables for centralized governance and access control.
@@ -164,14 +174,10 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ### **8. Product Embedding**
 - Utilizes the sentence-transformers/all-MiniLM-L6-v2 model to generate embeddings for product reviews, converting textual data into 384-dimensional numerical vectors.
-- Captures semantic relationships in review titles and texts, enabling advanced analysis and product understanding.
-- Combines title and text embeddings for a comprehensive representation of each product.
-- Aggregates embeddings across multiple reviews for the same product, creating a unified product-level embedding that represents the collective sentiment and content of all associated reviews. This aggregated embedding improves the model's ability to generalize insights and enhances downstream tasks such as recommendation precision and product clustering.
+- Captures semantic relationships using Facebook/bart-large-mnli in review titles, texts, extracted topics, and sentiment.
+- Combines title, text, topic, and sentiment embeddings for a comprehensive representation of each product.
+- Aggregates embeddings across multiple reviews for the same product, creating a unified product-level embedding that represents the collective sentiment and content of all associated reviews.
 - Embeddings serve as the foundation for integrating GenAI capabilities, allowing the model to provide context-aware product insights and intelligent interactions.
-
-### **9. Coming Soon (Future Scope)**
-- Build advanced recommendation models and evaluate performance.
-- Implement personalized email campaigns based on engagement levels.
 
 ---
 
@@ -235,6 +241,20 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
     - user_session_index 25 (score: 8.8622e-07)
     - This indicates that user 9 is most likely to interact with product 3774.
 
+#### **6. Neural Collaborative Filtering (NCF)**
+  - Each cosmetic_id is associated with a list of users (user_session_index) ranked by predicted interaction score, indicating which users are most likely to engage with the product.
+    - cosmetic_id: The ID of the product for which recommendations are generated.
+    - user_session_index: The IDs of the users most likely to engage with the product, ranked by predicted interaction score.
+    - rating: The predicted score for the user-product pair, indicating the likelihood of user interaction.
+  - Outputs include:
+    - Top-N users most likely to engage with each product.
+    - Scores indicating the likelihood of interaction between each user and the product.
+  - Example:
+    - For cosmetic_id 18288, the top users likely to engage are:
+    - user_session_index 26313 (score: 9.1667e-07)
+    - user_session_index 7555 (score: 8.8622e-07)
+    - This indicates that user 26313 is most likely to interact with product 18288.
+
 ### Evaluation Results
 1. Cosine Similarity Recommendations:
   - Precision: 0.00015
@@ -248,25 +268,63 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
   - Precision: 0.0141
   - Recall: 0.0183
 
+4. NCF Recommendations:
+  - Precision: 0.614
+  - Recall: 0.141
+
 ---
 
 ## **Product Embedding Output**
-- Each product is represented by a combined embedding derived from its review title and text using the sentence-transformers/all-MiniLM-L6-v2 model.
-  - review_product_id: The ID of the product for which embeddings are generated.
+- Each product is represented by a combined embedding derived from its review title, text, extracted topics, and sentiment (generated by Facebook/bart-large-mnli) using the sentence-transformers/all-MiniLM-L6-v2 model.
+  - review_product_id: The ID of the product for which embeddings are generated
   - review_title_embedding: The 384-dimensional numerical vector representing the semantic meaning of the product's review title.
   - review_text_embedding: The 384-dimensional numerical vector representing the semantic meaning of the product's review text.
-  - combined_embedding: The averaged 384-dimensional vector combining the title and text embeddings, representing a holistic view of the product.
-  - aggregated_embedding: The mean-pooled 384-dimensional vector that consolidates embeddings from multiple reviews into a single, unified representation for each product.
+  - topic_embedding: The 384-dimensional vector representing extracted topics from reviews.
+  - sentiment_embedding: The 384-dimensional vector representing the sentiment analysis of the reviews.
+  - combined_embedding: The averaged 384-dimensional vector combining title and text embeddings, representing a holistic view of the product.
+  - final_embedding: A unified 384-dimensional vector combining review, topic, and sentiment embeddings, representing a complete semantic understanding of the product.
 - Outputs include:
-  - Semantic representations (embeddings) for each product's title and text.
-  - Combined embeddings that encapsulate both title and text semantics for deeper product understanding.
-  - Product-level embeddings computed by aggregating (mean pooling) the combined embeddings across all reviews for a product.
+  - Semantic representations (embeddings) for each product's title, text, topics, and sentiment.
+  - Combined embeddings that encapsulate review title and text semantics for deeper product understanding.
+  - Final product-level embeddings computed by aggregating (mean pooling) the combined embeddings across all reviews for a product.
 - Example:
   - For review_product_id 781070:
-    - review_title_embedding: A 384-dimensional vector, e.g., [-0.14797255, -0.31693813, ... , 0.7613837].
+    - review_title_embedding: A 384-dimensional vector, e.g., [-0.14797255, -0 31693813, ... , 0.7613837].
     - review_text_embedding: A 384-dimensional vector, e.g., [0.26907432, -0.32546055, ... , 0.37493005].
+    - topic_embedding: A 384-dimensional vector, e.g., [0.15072455, -0.23781678, ... , 0.49871013].
+    - sentiment_embedding: A 384-dimensional vector, e.g., [-0.12938764, 0.26547293, ... , 0.37951243].
     - combined_embedding: A 384-dimensional vector combining title and text embeddings, e.g., [0.06055088, -0.32119934, ... , 0.56815687].
-    - aggregated_embedding: A unified 384-dimensional vector representing the product, e.g., [0.10503072, -0.31056788, ..., 0.59124565].
+    - final_embedding: A unified 384-dimensional vector representing the product, e.g., [0.10503072, -0.31056788, ..., 0.59124565].
+
+## **Product Embedding Model Output**
+
+### Neural Collaborative Filtering (NCF) with Embedded Product Representations
+  - Utilizes Neural Collaborative Filtering (NCF) with product embeddings to improve recommendation accuracy.
+  - Captures deep **user-product interactions** using **learned embeddings** and fully connected layers.
+  - Assigns numerical interaction scores based on event types:
+    - `purchase` → **3**  
+    - `add-to-cart` → **2**  
+    - `view` → **1**  
+  - Output 
+    - Each user_id receives a ranked list of recommended products, based on predicted interaction scores.
+    - For example, for user_id 10, the model ranks the top products they are most likely to engage with, assigning higher scores to those with a stronger likelihood of interaction.
+    - Top-N product recommendations for each user.
+    - Predicted scores indicating interaction likelihood.
+    - Context-aware recommendations, leveraging both structured session-based data and textual embeddings
+  - Example:
+    - For user_id 10, the top product recommendations are:
+      - 1st: Product 22
+      - 2nd: Product 65
+      - 3rd: Product 25
+      - 4th: Product 51
+      - 5th: Product 16
+    - This suggests that user 10 is most likely to engage with Product 22, followed by Product 65 and so on.
+
+### Evaluation Results
+  - Precision: 0.1111
+  - Recall: 0.3333
+  - F1-Score: 0.1666
+
 ---
 
 ## Architecture Diagram

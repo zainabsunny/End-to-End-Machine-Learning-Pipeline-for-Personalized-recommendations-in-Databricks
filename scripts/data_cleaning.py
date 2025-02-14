@@ -1,61 +1,51 @@
-from pyspark.sql.functions import udf
+from pyspark.sql.functions import udf, col, lit
 from pyspark.sql.types import StringType
-from pyspark.sql import DataFrame
+from pyspark.sql.functions import when, concat_ws, col
 import re
+from pyspark.sql import functions as F
 
+# -----------------------------
+# 1) Clean Text
+# -----------------------------
 
-# Utility function for text cleaning, for dunzhang/stella_en_400M_v5 only need to clean up whitespaces
+# Utility function to clean text
 def clean_text(text):
     if isinstance(text, str):
-        text = text.replace('\n', ' ')  # Remove new lines
-        text = text.replace('\t', ' ')  # Remove tabs
-        text = text.replace('\r', ' ')  # Remove returns
-        return text.strip()
-    return text 
+        text = text.lower().strip()
+        text = re.sub(r'[^a-zA-Z0-9 ]', '', text)  # Remove special characters
+        return text
+    return text
 
-# Register the clean_text function as a UDF
+# Register as Spark UDF
 clean_text_udf = udf(clean_text, StringType())
 
-def clean_cosmetic_df(cosmetic_df: DataFrame) -> DataFrame:
-    # Standardize column names
-    cosmetic_df = cosmetic_df.withColumnRenamed("product_id", "cosmetic_product_id") \
-                             .withColumnRenamed("price", "cosmetic_price") 
-    
-    # Filter out rows with invalid prices
-    cosmetic_df = cosmetic_df.filter(cosmetic_df['cosmetic_price'] > 0)
-    
-    # Filter for valid events in multi-classification
-    valid_events = ["view", "cart", "remove_from_cart", "purchase"]
-    cosmetic_df = cosmetic_df.filter(cosmetic_df.event_type.isin(valid_events))
-    
-    return cosmetic_df
+# -----------------------------
+# 2) Clean Cosemtic Data 
+# -----------------------------
 
-def clean_mapping_df(mapping_df: DataFrame) -> DataFrame:
-    # Standardize column names
-    mapping_df = mapping_df.withColumnRenamed("product_id_events", "cosmetic_product_id") \
-                           .withColumnRenamed("product_id_reviews", "review_product_id")
-    
-    # Drop rows with missing values
-    mapping_df = mapping_df.na.drop()
-    return mapping_df
+def clean_cosmetic_df(cosmetic_df):
+    return (
+        cosmetic_df
+        .withColumn(
+            "cosmetic_product_title_clean", 
+            when(col("category_code").isNotNull(), col("category_code"))  # Use category_code if available
+            .otherwise(col("brand"))  # Fallback to brand name
+        )
+        .withColumnRenamed("product_id", "cosmetic_product_id")
+        .withColumnRenamed("price", "cosmetic_price")
+        .filter(col('cosmetic_price') > 0)  # Remove invalid prices
+    )
 
-def clean_reviews_df(reviews_df: DataFrame) -> DataFrame:
-    # Standardize column names
-    reviews_df = reviews_df.withColumnRenamed("product_id", "review_product_id") \
-                           .withColumnRenamed("price", "review_price")
-    
-    # Drop unnecessary columns and handle missing values
-    reviews_df = reviews_df.drop("product_tags")
-    reviews_df = reviews_df.fillna({
-        'review_text': 'No review', 
-        'brand_name': 'Unknown', 
-        'review_label': 'No Label',
-        'product_title': 'Unknown Title'
-    })
-    
-    # Apply cleaning to text columns
-    reviews_df = reviews_df.withColumn("review_title_clean", clean_text_udf(reviews_df["review_title"]))
-    reviews_df = reviews_df.withColumn("review_text_clean", clean_text_udf(reviews_df["review_text"]))
-    
-    return reviews_df
+# -----------------------------
+# 3) Clean Reviews Data
+# -----------------------------
 
+def clean_reviews_df(reviews_df):
+    """
+    Cleans the reviews dataset and ensures a standardized product title column.
+    """
+    return (reviews_df
+        .withColumn("review_product_title_clean", clean_text_udf(col("product_title")))  # Ensure column exists
+        .withColumnRenamed("product_id", "review_product_id")
+        .withColumnRenamed("price", "review_price")
+    )

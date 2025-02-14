@@ -10,8 +10,15 @@ def transform_cosmetic_data(cosmetic_df):
     """
     Transform structured interaction data (e.g., scaling prices).
     """
+    # Use the correct column name
+    price_col = "cosmetic_price"
+    
+    # Check if `cosmetic_price` column exists
+    if price_col not in cosmetic_df.columns:
+        raise ValueError(f"Column '{price_col}' not found in cosmetic_df. Available columns: {cosmetic_df.columns}")
+
     # Scale `cosmetic_price`
-    assembler = VectorAssembler(inputCols=["cosmetic_price"], outputCol="price_vec")
+    assembler = VectorAssembler(inputCols=[price_col], outputCol="price_vec")
     cosmetic_df = assembler.transform(cosmetic_df)
     
     scaler = StandardScaler(inputCol="price_vec", outputCol="price_scaled")
@@ -20,38 +27,7 @@ def transform_cosmetic_data(cosmetic_df):
     return cosmetic_df
 
 # -----------------------------
-# 2) Transform Mapping Data
-# -----------------------------
-
-def transform_mapping_data(mapping_df):
-    """
-    Transform product mapping data.
-    """
-    from pyspark.sql.functions import mean, stddev
-
-    # Cast columns to IntegerType
-    mapping_df = mapping_df.withColumn("cosmetic_product_id", mapping_df["cosmetic_product_id"].cast(IntegerType()))
-    mapping_df = mapping_df.withColumn("review_product_id", mapping_df["review_product_id"].cast(IntegerType()))
-    
-    # Calculate mean and standard deviation for filtering outliers
-    stats = mapping_df.select(
-        mean("review_product_id").alias("mean_reviews"),
-        stddev("review_product_id").alias("stddev_reviews")
-    ).collect()[0]
-    
-    mean_reviews = stats["mean_reviews"]
-    stddev_reviews = stats["stddev_reviews"]
-    
-    # Filter out outliers
-    mapping_df = mapping_df.filter(
-        (col("review_product_id") > mean_reviews - 3 * stddev_reviews) &
-        (col("review_product_id") < mean_reviews + 3 * stddev_reviews)
-    )
-    
-    return mapping_df
-
-# -----------------------------
-# 3) Transform Review Data
+# 2) Transform Review Data
 # -----------------------------
 
 def transform_reviews_data(reviews_df):

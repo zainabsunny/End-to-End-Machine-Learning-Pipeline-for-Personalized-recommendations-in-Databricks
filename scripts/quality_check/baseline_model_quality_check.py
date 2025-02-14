@@ -145,3 +145,4 @@ def check_als_output(model, user_recs: pd.DataFrame, item_recs: pd.DataFrame):
             print("[CHECK] ✅ All expected columns in item_recs are present.")
 
     print("\n=== ALS Recommender Output Checks Complete ===\n")
+

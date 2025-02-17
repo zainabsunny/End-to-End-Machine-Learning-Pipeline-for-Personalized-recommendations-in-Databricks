@@ -270,7 +270,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 4. NCF Recommendations:
   - Precision: 0.614
-  - Recall: 0.141
+  - Recall: 0.14
 
 ---
 

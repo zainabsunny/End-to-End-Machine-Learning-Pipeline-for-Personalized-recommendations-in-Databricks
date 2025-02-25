@@ -59,31 +59,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - **Visualization Tools**:
   - Matplotlib
   - Seaborn
-  - Power BI Dashboard or Tableau: For data visualization and reporting.
-
----
-
-## **MLflow Best Practices**
-
-1. **Access Control and Versioning**
-  - Use Git for version control: Store pipelines and code in Git to manage development stages (development, staging, release).
-  - Leverage Databricks Git folders to integrate Git with Databricks workspaces, ensuring synchronization between notebooks and source code.
-
-2. **Data Management**
-  - Store all raw data and feature tables in a Delta Lake architecture, enabling reliable transactional storage.
-  - Apply access controls to Delta tables to manage permissions for data reading and modification.
-
-3. **Model Tracking and Development**
-  - Use MLflow to:
-      - Track model parameters, metrics, and metadata.
-      - Save code snapshots for reproducibility
-      - Monitor the development lifecycle, from experimentation to deployment.
-
-4. **Model Governance and Deployment**
-  - Utilize Models in Unity Catalog for:
-    - Centralized model versioning and governance.
-    - Managing deployment statuses.
-    - Ensuring seamless model lifecycle transitions.
+  - SQL Dashboard: For data visualization and reporting.
 
 ---
 
@@ -330,6 +306,30 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 ## Architecture Diagram
 
 ![Architecture Diagram](images/architecture_diagram.png)
+
+---
+
+## **MLflow Best Practices**
+
+1. **Access Control and Versioning**
+  - Use Git for version control: Store pipelines and code in Git to manage development stages (development, staging, release).
+  - Leverage Databricks Git folders to integrate Git with Databricks workspaces, ensuring synchronization between notebooks and source code.
+
+2. **Data Management**
+  - Store all raw data and feature tables in a Delta Lake architecture, enabling reliable transactional storage.
+  - Apply access controls to Delta tables to manage permissions for data reading and modification.
+
+3. **Model Tracking and Development**
+  - Use MLflow to:
+      - Track model parameters, metrics, and metadata.
+      - Save code snapshots for reproducibility
+      - Monitor the development lifecycle, from experimentation to deployment.
+
+4. **Model Governance and Deployment**
+  - Utilize Models in Unity Catalog for:
+    - Centralized model versioning and governance.
+    - Managing deployment statuses.
+    - Ensuring seamless model lifecycle transitions.
 
 ---
 

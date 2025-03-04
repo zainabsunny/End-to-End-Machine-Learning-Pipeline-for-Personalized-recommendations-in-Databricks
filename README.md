@@ -303,6 +303,16 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ---
 
+## Future Research and Improvements
+
+1. Real-Time Recommendation System – Implementing a real-time recommendation engine using streaming technologies like Databricks Delta Live Tables could enhance personalization and responsiveness, allowing recommendations to adapt dynamically based on user interactions.
+
+2. Enhancing Cold-Start Handling – The current models struggle with cold-start scenarios where new users or products lack sufficient interaction history. Future work could explore hybrid approaches that combine collaborative filtering with content-based methods using product descriptions, user demographics, and transformer-based embeddings.
+
+3. LLM-Based Reranking and Explanations – Integrating Large Language Models (LLMs) like GPT-4 to rerank recommendations and provide natural language explanations could improve user trust and engagement by making recommendations more interpretable and context-aware.
+
+---
+
 ## Architecture Diagram
 
 ![Architecture Diagram](images/architecture_diagram.png)

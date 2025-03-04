@@ -59,31 +59,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - **Visualization Tools**:
   - Matplotlib
   - Seaborn
-  - Power BI Dashboard or Tableau: For data visualization and reporting.
-
----
-
-## **MLflow Best Practices**
-
-1. **Access Control and Versioning**
-  - Use Git for version control: Store pipelines and code in Git to manage development stages (development, staging, release).
-  - Leverage Databricks Git folders to integrate Git with Databricks workspaces, ensuring synchronization between notebooks and source code.
-
-2. **Data Management**
-  - Store all raw data and feature tables in a Delta Lake architecture, enabling reliable transactional storage.
-  - Apply access controls to Delta tables to manage permissions for data reading and modification.
-
-3. **Model Tracking and Development**
-  - Use MLflow to:
-      - Track model parameters, metrics, and metadata.
-      - Save code snapshots for reproducibility
-      - Monitor the development lifecycle, from experimentation to deployment.
-
-4. **Model Governance and Deployment**
-  - Utilize Models in Unity Catalog for:
-    - Centralized model versioning and governance.
-    - Managing deployment statuses.
-    - Ensuring seamless model lifecycle transitions.
+  - SQL Dashboard: For data visualization and reporting.
 
 ---
 
@@ -270,7 +246,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 4. NCF Recommendations:
   - Precision: 0.614
-  - Recall: 0.141
+  - Recall: 0.14
 
 ---
 
@@ -327,9 +303,43 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 
 ---
 
+## Future Research and Improvements
+
+1. Real-Time Recommendation System – Implementing a real-time recommendation engine using streaming technologies like Databricks Delta Live Tables could enhance personalization and responsiveness, allowing recommendations to adapt dynamically based on user interactions.
+
+2. Enhancing Cold-Start Handling – The current models struggle with cold-start scenarios where new users or products lack sufficient interaction history. Future work could explore hybrid approaches that combine collaborative filtering with content-based methods using product descriptions, user demographics, and transformer-based embeddings.
+
+3. LLM-Based Reranking and Explanations – Integrating Large Language Models (LLMs) like GPT-4 to rerank recommendations and provide natural language explanations could improve user trust and engagement by making recommendations more interpretable and context-aware.
+
+---
+
 ## Architecture Diagram
 
 ![Architecture Diagram](images/architecture_diagram.png)
+
+---
+
+## **MLflow Best Practices**
+
+1. **Access Control and Versioning**
+  - Use Git for version control: Store pipelines and code in Git to manage development stages (development, staging, release).
+  - Leverage Databricks Git folders to integrate Git with Databricks workspaces, ensuring synchronization between notebooks and source code.
+
+2. **Data Management**
+  - Store all raw data and feature tables in a Delta Lake architecture, enabling reliable transactional storage.
+  - Apply access controls to Delta tables to manage permissions for data reading and modification.
+
+3. **Model Tracking and Development**
+  - Use MLflow to:
+      - Track model parameters, metrics, and metadata.
+      - Save code snapshots for reproducibility
+      - Monitor the development lifecycle, from experimentation to deployment.
+
+4. **Model Governance and Deployment**
+  - Utilize Models in Unity Catalog for:
+    - Centralized model versioning and governance.
+    - Managing deployment statuses.
+    - Ensuring seamless model lifecycle transitions.
 
 ---
 

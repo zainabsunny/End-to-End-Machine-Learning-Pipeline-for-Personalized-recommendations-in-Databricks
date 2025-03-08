@@ -19,8 +19,12 @@ def preprocess_ncf_data(purchase_df):
     Prepares purchase data for Neural Collaborative Filtering (NCF).
     Assigns numerical scores to event types and encodes user/product IDs.
     """
-    #purchase_df = purchase_df.withColumn("interaction_score", lit(2.0))  # Purchase = 2.0
-    purchase_df = purchase_df.withColumn("interaction_score", when(col("event_type") == "purchase", lit(2.0)).otherwise(lit(1.0)))
+    purchase_df = purchase_df.withColumn(
+        "interaction_score",
+        when(col("event_type") == "purchase", lit(2.0))  # Purchase = 2.0
+        .when(col("event_type") == "cart", lit(1.0)) # Add to Cart = 1.0
+        .otherwise(lit(0.0))  # Any other event = 0.0
+    )
     interaction_df = purchase_df.select("user_id", "cosmetic_product_id", "interaction_score")
     interaction_data = interaction_df.toPandas()
 

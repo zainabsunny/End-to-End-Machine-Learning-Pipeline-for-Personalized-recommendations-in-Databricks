@@ -56,10 +56,7 @@ This project implements a comprehensive end-to-end machine learning pipeline in 
 - **MLflow**: To track model metrics, manage versioning, and facilitate reproducibility.
 - **Unity Catalog**: For Data governance and management.
 - **AWS S3**: Cloud storage for raw datasets.
-- **Visualization Tools**:
-  - Matplotlib
-  - Seaborn
-  - SQL Dashboard: For data visualization and reporting.
+- **Visualization Tool**: Streamlit
 
 ---
 
